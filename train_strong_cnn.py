@@ -55,6 +55,7 @@ model.load_state_dict(mnist_state)
 if os.path.exists("models/cnn_fullset_perturbs.model"):
     print("Loading pre-existed perturbations")
     perturbs = torch.load("models/cnn_fullset_perturbs.model")
+    perturbs = perturbs.to("cuda")
     perturbs = list(perturbs)
 else:
     print("Creating new set of perturbation")
@@ -66,7 +67,10 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
 init_rounds = len(perturbs)
-total_rounds = 9
+total_rounds = 5
+
+#%%
+model = model.to("cuda")
 
 #%%
 for r in range(init_rounds, init_rounds + total_rounds):
@@ -74,7 +78,7 @@ for r in range(init_rounds, init_rounds + total_rounds):
     # Fetch one attack image
 
     # Create a random array of perturbation
-    perturb = torch.zeros([1, 1, 28, 28], requires_grad=True)
+    perturb = torch.zeros([1, 1, 28, 28], requires_grad=True, device="cuda")
 
     # Epsilon defines the maximum density (-e, e). It should be
     # in the range of the training set's scaled value.
@@ -87,6 +91,8 @@ for r in range(init_rounds, init_rounds + total_rounds):
     for e in range(epochs):
         running_loss = 0
         for images, labels in trainloader:
+            images = images.to("cuda")
+            labels = labels.to("cuda")
             adversarial_optimizer.zero_grad()
 
             output = model(images + perturb)
@@ -105,6 +111,8 @@ for r in range(init_rounds, init_rounds + total_rounds):
     for e in range(epochs):
         running_loss = 0
         for images, labels in trainloader:
+            images = images.to("cuda")
+            labels = labels.to("cuda")
             for perturb in perturbs:
                 for density in densities:
                     optimizer.zero_grad()
@@ -126,9 +134,9 @@ perturbs = torch.stack(perturbs)
 torch.save(perturbs, "models/cnn_fullset_perturbs.model")
 
 # %%
-fig, axs = plt.subplots(2, 5, figsize=(10, 4))
+fig, axs = plt.subplots(3, 5, figsize=(10, 6))
 for p, ax in zip(perturbs, axs.ravel()):
-    ax.imshow(p.detach().numpy().reshape(28, 28))
+    ax.imshow(p.device("cpu").detach().numpy().reshape(28, 28))
 plt.show()
 
 # %%
