@@ -133,3 +133,24 @@ plt.show()
 
 
 # %%
+model2 = MnistFcnn()
+mnist_state = torch.load("models/mnist_fcnn.model")
+model2.load_state_dict(mnist_state)
+
+training_feature = mnist_testset[0][0]
+x_legend = np.linspace(-1, 1, 101)
+attacked_images = []
+for i in x_legend:
+    attacked_images.append(i * perturbs[0].to("cpu") + training_feature)
+model_probs = []
+for i in attacked_images:
+    model_probs.append(model2(i.view(-1, 1, 28, 28)).detach().numpy())
+model_probs = np.array(model_probs).reshape(101, 10).T
+
+for i, v in enumerate(model_probs):
+    plt.plot(x_legend, v, label="{}".format(i))
+
+plt.legend()
+plt.show()
+
+# %%

@@ -89,7 +89,7 @@ for r in range(init_rounds, init_rounds + total_rounds):
     adversarial_optimizer = optim.SGD([perturb], lr=0.1)
 
     # Train the adversarial noise, maximising the loss
-    epochs = 50000
+    epochs = 10
     for e in range(epochs):
         running_loss = 0
         adversarial_optimizer.zero_grad()
