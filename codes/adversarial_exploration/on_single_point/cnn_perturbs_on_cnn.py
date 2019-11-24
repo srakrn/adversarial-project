@@ -15,7 +15,7 @@ torch.manual_seed(0)
 
 #%%
 transform = transforms.Compose(
-    [transforms.Normalize((0.5,), (0.5,))]
+    [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
 )
 mnist_trainset = datasets.MNIST(
     root="mnist", train=True, download=True, transform=transform
@@ -104,8 +104,8 @@ print(adver_clf_mat - perturbs_clf_mat)
 
 
 # %%
-np.savetxt("models/classification_results/mnist_cnn_testset.txt", y_pred)
-np.savetxt("models/classification_results/mnist_cnn_testset_adver.txt", y_pred_adver)
-np.savetxt("models/classification_results/mnist_cnn_testset_perturbs.txt", y_pred_perturbs)
+np.save("models/classification_results/on_single_point/cnn_model/cnn_testset.npy", y_pred)
+np.save("models/classification_results/on_single_point/cnn_model/cnn_testset_adver.npy", y_pred_adver)
+np.save("models/classification_results/on_single_point/cnn_model/cnn_testset_perturbs.npy", y_pred_perturbs)
 
 # %%
