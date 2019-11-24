@@ -47,7 +47,7 @@ mnist_state = torch.load("models/mnist_fcnn.model")
 model.load_state_dict(mnist_state)
 
 # %%
-perturbs = torch.load("perturbs/fcnn_on_single_point.model")
+perturbs = torch.load("perturbs/on_single_point/fcnn_on_single_point.pt")
 perturbs = perturbs.reshape(10000, 28, 28)
 
 # %%
