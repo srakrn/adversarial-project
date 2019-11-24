@@ -111,3 +111,4 @@ dmypy.json
 .ipynb_checkpoints
 .vscode
 temp
+.log
