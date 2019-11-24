@@ -52,7 +52,7 @@ mnist_state = torch.load("models/mnist_cnn.model")
 model.load_state_dict(mnist_state)
 
 # %%
-perturbs = torch.load("perturbs/on_single_point/cnn_on_single_point.pt")
+perturbs = torch.load("perturbs/on_single_point/fcnn_on_single_point.pt")
 perturbs = perturbs.reshape(10000, 1, 28, 28)
 
 # %%
@@ -104,8 +104,8 @@ print(adver_clf_mat - perturbs_clf_mat)
 
 
 # %%
-np.savetxt("models/classification_results/mnist_cnn_testset.txt", y_pred)
-np.savetxt("models/classification_results/mnist_cnn_testset_adver.txt", y_pred_adver)
-np.savetxt("models/classification_results/mnist_cnn_testset_perturbs.txt", y_pred_perturbs)
+np.savetxt("models/classification_results/on_single_point/cnn_model/fcnn_testset.txt", y_pred)
+np.savetxt("models/classification_results/on_single_point/cnn_model/fcnn_testset_adver.txt", y_pred_adver)
+np.savetxt("models/classification_results/on_single_point/cnn_model/cnn_testset_perturbs.txt", y_pred_perturbs)
 
 # %%
