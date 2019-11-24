@@ -40,16 +40,15 @@ class MnistFcnn(nn.Module):
         x = self.linear3(x)
         return x
 
-
 # %%
 model = MnistFcnn()
 mnist_state = torch.load("models/mnist_fcnn.model")
 model.load_state_dict(mnist_state)
 
 # %%
-if os.path.exists("models/fcnn_perturbs.model"):
+if os.path.exists("perturbs/fcnn_on_single_point.model"):
     print("Loading pre-existed perturbations")
-    perturbs = torch.load("models/fcnn_perturbs.model")
+    perturbs = torch.load("perturbs/fcnn_on_single_point.model")
     perturbs = list(perturbs)
 else:
     print("Creating new set of perturbation")
@@ -58,20 +57,10 @@ densities = [-0.05, 0.05]
 
 #%%
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.01)
-
-init_rounds = len(perturbs)
-total_rounds = 10
-
-#%%
-# SET YOUR ATTACKING IMAGE HERE!
-attack_image, attack_label = mnist_trainset[0]
-feeding_attack_image = attack_image.reshape(1, -1)
-feeding_attack_label = torch.tensor([attack_label])
-
-#%%
-for r in range(init_rounds, init_rounds + total_rounds):
-    print("Round:", r + 1)
+for i, (attack_image, attack_label) in enumerate(mnist_testset): 
+    print("Image:", i + 1)
+    feeding_attack_image = attack_image.reshape(1, -1)
+    feeding_attack_label = torch.tensor([attack_label])
     # Fetch one attack image
 
     # Create a random array of perturbation
@@ -84,7 +73,7 @@ for r in range(init_rounds, init_rounds + total_rounds):
     adversarial_optimizer = optim.SGD([perturb], lr=0.1)
 
     # Train the adversarial noise, maximising the loss
-    epochs = 50000
+    epochs = 1000
     for e in range(epochs):
         running_loss = 0
         adversarial_optimizer.zero_grad()
@@ -95,38 +84,14 @@ for r in range(init_rounds, init_rounds + total_rounds):
         adversarial_optimizer.step()
         running_loss += loss.item()
         perturb.data.clamp_(-epsilon, epsilon)
-        if (e + 1) % 10000 == 0:
-            print("\tNoise loss:", -1 * loss.item())
+    print("\tNoise loss:", -1 * loss.item())
 
     # Save the perturbations
     perturbs.append(perturb)
 
-    # Train the model again with all perturbations added.
-    epochs = 5
-    for e in range(epochs):
-        running_loss = 0
-        for images, labels in trainloader:
-            for perturb in perturbs:
-                for density in densities:
-                    images = images.view(images.shape[0], -1)
-
-                    optimizer.zero_grad()
-
-                    output = F.log_softmax(model(images + density * perturb), dim=1)
-                    loss = criterion(output, labels)
-                    loss.backward()
-                    optimizer.step()
-
-                    running_loss += loss.item()
-        else:
-            print("\tTraining loss: {}".format(running_loss / len(trainloader)))
-    torch.save(
-        model.state_dict(), "models/mnist_fcnn_reinforced_{}.model".format(r + 1)
-    )
-
 # %%
 perturbs = torch.stack(perturbs)
-torch.save(perturbs, "models/fcnn_perturbs.model")
+torch.save(perturbs, "perturbs/fcnn_on_single_point.model")
 
 # %%
 fig, axs = plt.subplots(2, 5, figsize=(10, 4))
