@@ -50,40 +50,6 @@ model = MnistCnn()
 mnist_state = torch.load("models/mnist_cnn.model")
 model.load_state_dict(mnist_state)
 
-# %%
-nth_training_points = [
-    1,
-    21,
-    34,
-    3,
-    6,
-    8,
-    5,
-    16,
-    25,
-    7,
-    10,
-    12,
-    2,
-    9,
-    20,
-    0,
-    11,
-    35,
-    13,
-    18,
-    32,
-    15,
-    29,
-    38,
-    17,
-    31,
-    41,
-    4,
-    19,
-    22,
-]
-
 #%%
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
