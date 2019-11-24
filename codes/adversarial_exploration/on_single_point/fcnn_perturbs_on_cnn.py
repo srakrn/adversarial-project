@@ -104,8 +104,7 @@ print(adver_clf_mat - perturbs_clf_mat)
 
 
 # %%
-np.save("models/classification_results/on_single_point/cnn_model/fcnn_testset.npy", y_pred)
 np.save("models/classification_results/on_single_point/cnn_model/fcnn_testset_adver.npy", y_pred_adver)
-np.save("models/classification_results/on_single_point/cnn_model/cnn_testset_perturbs.npy", y_pred_perturbs)
+np.save("models/classification_results/on_single_point/cnn_model/fcnn_testset_perturbs.npy", y_pred_perturbs)
 
 # %%
