@@ -56,7 +56,7 @@ perturbs = torch.load("perturbs/on_single_point/cnn_on_single_point.pt")
 perturbs = perturbs.reshape(10000, 1, 28, 28)
 
 # %%
-density = 0.1
+density = 0.2
 x_test, y_test = next(iter(testloader))
 x_test = x_test.reshape(-1, 1, 28, 28)
 x_adver = x_test + density * perturbs
