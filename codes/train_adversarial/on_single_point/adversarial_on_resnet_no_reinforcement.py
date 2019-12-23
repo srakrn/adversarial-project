@@ -32,6 +32,7 @@ model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
 model.fc = nn.Linear(in_features=512, out_features=10, bias=True)
 mnist_state = torch.load("models/mnist_resnet18.model")
 model.load_state_dict(mnist_state)
+model = model.to('cuda')
 
 # %%
 if os.path.exists("perturbs/resnet_on_single_point.model"):
@@ -46,8 +47,11 @@ densities = [-0.05, 0.05]
 #%%
 criterion = nn.CrossEntropyLoss()
 for i, (attack_image, attack_label) in enumerate(testloader): 
+    attack_image = attack_image.to('cuda')
+    attack_label = attack_label.to('cuda')
+
     # Create a random array of perturbation
-    perturb = torch.zeros([10, 1, 28, 28], requires_grad=True)
+    perturb = torch.zeros([10, 1, 28, 28], requires_grad=True, device='cuda')
 
     # Epsilon defines the maximum density (-e, e). It should be
     # in the range of the training set's scaled value.
@@ -69,10 +73,11 @@ for i, (attack_image, attack_label) in enumerate(testloader):
             running_loss += loss.item()
             perturb.data.clamp_(-epsilon, epsilon)
         print(running_loss)
-        if running_loss < -20:
+        if running_loss < -15:
             break
 
     # Save the perturbations
+    perturb = perturb.to('cpu')
     perturbs.append(perturb)
 
 # %%
