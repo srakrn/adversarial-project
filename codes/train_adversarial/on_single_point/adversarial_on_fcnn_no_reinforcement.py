@@ -46,9 +46,9 @@ mnist_state = torch.load("models/mnist_fcnn.model")
 model.load_state_dict(mnist_state)
 
 # %%
-if os.path.exists("perturbs/fcnn_on_single_point.model"):
+if os.path.exists("perturbs/on_single_point/fcnn_on_single_point.model"):
     print("Loading pre-existed perturbations")
-    perturbs = torch.load("perturbs/fcnn_on_single_point.model")
+    perturbs = torch.load("perturbs/on_single_point/fcnn_on_single_point.model")
     perturbs = list(perturbs)
 else:
     print("Creating new set of perturbation")
@@ -91,7 +91,7 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
 
 # %%
 perturbs = torch.stack(perturbs)
-torch.save(perturbs, "perturbs/fcnn_on_single_point.model")
+torch.save(perturbs, "perturbs/on_single_point/fcnn_on_single_point.model")
 
 # %%
 fig, axs = plt.subplots(2, 5, figsize=(10, 4))
