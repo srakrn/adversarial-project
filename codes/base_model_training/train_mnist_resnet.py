@@ -22,8 +22,8 @@ mnist_testset = datasets.MNIST(
     root="mnist", train=False, download=True, transform=transform
 )
 
-trainloader = DataLoader(mnist_trainset, batch_size=64, shuffle=True)
-testloader = DataLoader(mnist_testset, batch_size=1, shuffle=True)
+trainloader = DataLoader(mnist_trainset, batch_size=100, shuffle=True)
+testloader = DataLoader(mnist_testset, batch_size=100, shuffle=True)
 
 model = models.resnet18(pretrained=True)
 model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
@@ -35,19 +35,33 @@ model.fc.weight.requires_grad = True
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-epochs = 10
+epochs = 50
+testing_losses = []
+model = model.to("cuda")
 for e in range(epochs):
-    running_loss = 0
+    training_loss = 0
+    testing_loss = 0
     for images, labels in trainloader:
+        images = images.to("cuda")
+        labels = labels.to("cuda")
         images = images.reshape(-1, 1, 28, 28)
         optimizer.zero_grad()
         output = model(images)
         loss = criterion(output, labels)
         loss.backward()
         optimizer.step()
+        training_loss += loss.item()
+    training_loss /= len(trainloader)
 
-        running_loss += loss.item()
-    else:
-        print(f"Training loss: {running_loss/len(trainloader)}")
-
-torch.save(model.state_dict(), "models/mnist_resnet18.model")
+    with torch.no_grad():
+        for images, labels in testloader:
+            images = images.to("cuda")
+            labels = labels.to("cuda")
+            images = images.reshape(-1, 1, 28, 28)
+            output = model(images)
+            testing_loss += loss.item()
+        testing_loss /= len(testloader)
+        testing_losses.append(testing_loss)
+    print(f"Epoch: {e}\n\tTrain: {training_loss} Test: {testing_loss}")
+    if testing_loss <= min(testing_losses):
+        torch.save(model.state_dict(), "models/mnist_resnet18.model")

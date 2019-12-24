@@ -1,3 +1,4 @@
+#%%
 import torch
 from torch import nn, optim
 import torch.nn.functional as F
@@ -6,26 +7,22 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import os
+from sklearn.metrics import classification_report, confusion_matrix
 
+#%%
 torch.manual_seed(0)
 
+#%%
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
 )
-
-mnist_trainset = datasets.MNIST(
-    root="mnist", train=True, download=True, transform=transform
-)
-
 mnist_testset = datasets.MNIST(
     root="mnist", train=False, download=True, transform=transform
 )
+testloader = DataLoader(mnist_testset, batch_size=10000, shuffle=False)
 
-trainloader = DataLoader(mnist_trainset, batch_size=64, shuffle=True)
-
-testloader = DataLoader(mnist_testset, batch_size=1, shuffle=True)
-
-
+# %%
 class MnistFcnn(nn.Module):
     def __init__(self):
         super(MnistFcnn, self).__init__()
@@ -40,24 +37,18 @@ class MnistFcnn(nn.Module):
         x = self.linear3(x)
         return x
 
-
+# %%
 model = MnistFcnn()
+mnist_state = torch.load("models/weak_learner/on_single_point/fcnn/fcnn_perturbs.model")
+model.load_state_dict(mnist_state)
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.01)
+# %%
+x_test, y_test = next(iter(testloader))
+y_pred = model(x_test).argmax(dim=1).numpy().astype(int)
 
-epochs = 5
-for e in range(epochs):
-    running_loss = 0
-    for images, labels in trainloader:
-        optimizer.zero_grad()
-        output = model(images)
-        loss = criterion(output, labels)
-        loss.backward()
-        optimizer.step()
+# %%
+report = classification_report(y_test, y_pred)
+print("Classification report of model")
+print(report)
 
-        running_loss += loss.item()
-    else:
-        print(f"Training loss: {running_loss/len(trainloader)}")
-
-torch.save(model.state_dict(), "models/weak_learners/on_single_point/mnist_fcnn.model")
+# %%
