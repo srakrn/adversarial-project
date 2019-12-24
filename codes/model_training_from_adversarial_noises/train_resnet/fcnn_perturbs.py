@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.metrics import classification_report
-import torchvision.models as models
 
 #%%
 torch.manual_seed(0)
@@ -20,8 +19,8 @@ transform = transforms.Compose(
 
 #%%
 class PerturbsDataset(Dataset):
-    data = torch.load("perturbs/on_single_point/resnet_on_single_point.pt").reshape(-1, 1, 28, 28)
-    labels = np.load("models/classification_results/on_single_point/resnet_model/resnet_testset_perturbs.npy")
+    data = torch.load("perturbs/on_single_point/fcnn_on_single_point.pt").reshape(-1, 1, 28, 28)
+    labels = np.load("models/classification_results/on_single_point/fcnn_model/fcnn_testset_perturbs.npy")
     labels = torch.tensor(labels)
 
     def __init__(self):
@@ -42,16 +41,12 @@ mnist_testset = datasets.MNIST(
 )
 testloader = DataLoader(mnist_testset, batch_size=10000, shuffle=False)
 #%%
-model = models.resnet18(pretrained=True)
-model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+model = models.resnet18(pretrained=true)
+model.conv1 = nn.conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=false)
 for param in model.parameters():
-    param.requires_grad = False
-model.fc = nn.Linear(in_features=512, out_features=10, bias=True)
+    param.requires_grad = false
+model.fc = nn.linear(in_features=512, out_features=10, bias=true)
 model.fc.weight.requires_grad = True
-
-#%%
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.01)
 
 #%%
 epochs = 15
@@ -61,7 +56,7 @@ for e in range(epochs):
     for images, labels in trainloader:
         optimizer.zero_grad()
 
-        output = F.log_softmax(model(images), dim=1)
+        output = F.log_softmax(net(images), dim=1)
         loss = criterion(output, labels)
         loss.backward()
         optimizer.step()
@@ -71,15 +66,4 @@ for e in range(epochs):
         print(f"Training loss: {running_loss/len(trainloader)}")
 
 #%%
-torch.save(model.state_dict(), "models/weak_learner/on_single_point/mnist_resnet.model")
-
-#%%
-X_test, y_test = next(iter(testloader))
-
-# %%
-y_pred = model(X_test).argmax(dim=1).numpy()
-
-# %%
-print(classification_report(y_test, y_pred))
-
-# %%
+torch.save(net.state_dict(), "models/weak_learner/on_single_point/fcnn/fcnn_perturbs.model")
