@@ -112,3 +112,4 @@ dmypy.json
 .vscode
 temp
 .log
+*.code-workspace
