@@ -110,9 +110,9 @@ def calculate_k_perturbs(
                 perturb.data.clamp(-1, 1)
         if verbose:
             print(f"\tTraining loss: {-1 * running_loss/len(trainloader)}")
+        losses.append(-1 * running_loss / len(trainloader))
     if log:
         t = time.strftime("%H:%M:%S", time.localtime())
-        losses.append(-1 * running_loss / len(trainloader))
         log_f.write(f"{t},{k},")
         log_f.write(",".join([f"{i:.5f}" for i in losses]))
         log_f.write("\n")
