@@ -1,18 +1,19 @@
 #%%
-import torch
-from torch import nn, optim
-import torch.nn.functional as F
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+import os
+import pickle
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-import os
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
 import numpy.linalg as la
+import pandas as pd
+import torch
+import torch.nn.functional as F
 from sklearn.cluster import KMeans
-import pickle
+from sklearn.decomposition import PCA
+from torch import nn, optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 #%%
 transform = transforms.Compose(
@@ -70,15 +71,20 @@ mnist_state = torch.load("models/mnist_fcnn.model")
 model.load_state_dict(mnist_state)
 
 # %%
-def calculate_k_perturbs(model, perturbs, training_set, k, n_epoches=20, verbose=False):
+def calculate_k_perturbs(
+    model, perturbs, training_set, k, n_epoches=20, verbose=False, log=False
+):
     km = KMeans(n_clusters=k)
     km_clusters = km.fit_predict(perturbs.reshape(len(perturbs), -1))
     print(f"Training {k} perturbs")
 
     k_points = []
     k_perturbs = []
+    losses = []
 
     for i in set(km_clusters):
+        if log:
+            log_f = open(log, "a")
         idx = np.where(km_clusters == i)[0]
         data = [training_set[j] for j in idx]
         trainloader = DataLoader(data, batch_size=len(data), shuffle=False)
@@ -104,8 +110,14 @@ def calculate_k_perturbs(model, perturbs, training_set, k, n_epoches=20, verbose
                 perturb.data.clamp(-1, 1)
         if verbose:
             print(f"\tTraining loss: {-1 * running_loss/len(trainloader)}")
-        k_points.append(idx)
-        k_perturbs.append(perturb.detach().numpy())
+    if log:
+        t = time.strftime("%H:%M:%S", time.localtime())
+        losses.append(-1 * running_loss / len(trainloader))
+        log_f.write(f"{t},{k},")
+        log_f.write(",".join([f"{i:.5f}" for i in losses]))
+        log_f.write("\n")
+    k_points.append(idx)
+    k_perturbs.append(perturb.detach().numpy())
     return [k_points, k_perturbs, km]
 
 
@@ -113,7 +125,13 @@ def calculate_k_perturbs(model, perturbs, training_set, k, n_epoches=20, verbose
 ks = range(1, 101)
 k_result = [
     calculate_k_perturbs(
-        model, fcnn_perturbs, mnist_testset, i, n_epoches=500, verbose=True
+        model,
+        fcnn_perturbs,
+        mnist_testset,
+        i,
+        n_epoches=500,
+        verbose=True,
+        log="perturbs/clustered/fcnn/on_perturb_gradientdesc.log",
     )
     for i in ks
 ]
