@@ -111,13 +111,13 @@ def calculate_k_perturbs(
         if verbose:
             print(f"\tTraining loss: {-1 * running_loss/len(trainloader)}")
         losses.append(-1 * running_loss / len(trainloader))
+        k_points.append(idx)
+        k_perturbs.append(perturb.detach().numpy())
     if log:
         t = time.strftime("%H:%M:%S", time.localtime())
         log_f.write(f"{t},{k},")
         log_f.write(",".join([f"{i:.5f}" for i in losses]))
         log_f.write("\n")
-    k_points.append(idx)
-    k_perturbs.append(perturb.detach().numpy())
     return [k_points, k_perturbs, km]
 
 
@@ -131,11 +131,11 @@ k_result = [
         i,
         n_epoches=500,
         verbose=True,
-        log="perturbs/clustered/fcnn/on_perturb_minibatch.log",
+        log="perturbs/partitioned/fcnn/on_perturb_minibatch.log",
     )
     for i in ks
 ]
 
 # %%
-with open("perturbs/clustered/fcnn/on_perturb_minibatch.pkl", "wb") as f:
+with open("perturbs/partitioned/fcnn/on_perturb_minibatch.pkl", "wb") as f:
     pickle.dump(k_result, f)
