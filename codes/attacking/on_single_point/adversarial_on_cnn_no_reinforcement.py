@@ -1,13 +1,14 @@
 #%%
-import torch
-from torch import nn, optim
-import torch.nn.functional as F
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import os
+import torch
+import torch.nn.functional as F
+from torch import nn, optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 #%%
 torch.manual_seed(0)
@@ -63,7 +64,7 @@ densities = [-0.05, 0.05]
 
 #%%
 criterion = nn.CrossEntropyLoss()
-for i, (attack_image, attack_label) in enumerate(mnist_testset): 
+for i, (attack_image, attack_label) in enumerate(mnist_testset):
     print("Image:", i + 1)
 
     attack_image, attack_label = mnist_trainset[i]
@@ -102,7 +103,7 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
 
 # %%
 perturbs = torch.stack(perturbs)
-torch.save(perturbs, "perturbs/cnn_on_single_point.model")
+torch.save(perturbs, "perturbs/cnn_on_single_point.pt")
 
 # %%
 fig, axs = plt.subplots(2, 5, figsize=(10, 4))

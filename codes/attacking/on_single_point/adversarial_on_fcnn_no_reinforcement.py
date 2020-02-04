@@ -1,13 +1,14 @@
 #%%
-import torch
-from torch import nn, optim
-import torch.nn.functional as F
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import os
+import torch
+import torch.nn.functional as F
+from torch import nn, optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 #%%
 torch.manual_seed(0)
@@ -40,6 +41,7 @@ class MnistFcnn(nn.Module):
         x = self.linear3(x)
         return x
 
+
 # %%
 model = MnistFcnn()
 mnist_state = torch.load("models/mnist_fcnn.model")
@@ -57,7 +59,7 @@ densities = [-0.05, 0.05]
 
 #%%
 criterion = nn.CrossEntropyLoss()
-for i, (attack_image, attack_label) in enumerate(mnist_testset): 
+for i, (attack_image, attack_label) in enumerate(mnist_testset):
     print("Image:", i + 1)
     feeding_attack_image = attack_image.reshape(1, -1)
     feeding_attack_label = torch.tensor([attack_label])
@@ -91,7 +93,7 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
 
 # %%
 perturbs = torch.stack(perturbs)
-torch.save(perturbs, "perturbs/on_single_point/fcnn_on_single_point.model")
+torch.save(perturbs, "perturbs/on_single_point/fcnn_on_single_point.pt")
 
 # %%
 fig, axs = plt.subplots(2, 5, figsize=(10, 4))

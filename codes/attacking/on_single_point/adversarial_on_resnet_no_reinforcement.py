@@ -1,14 +1,15 @@
 #%%
-import torch
-from torch import nn, optim
-import torch.nn.functional as F
-from torchvision import datasets, transforms
-from torchvision.models import resnet18
-from torch.utils.data import DataLoader
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import os
+import torch
+import torch.nn.functional as F
+from torch import nn, optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+from torchvision.models import resnet18
 
 #%%
 torch.manual_seed(0)
@@ -32,7 +33,7 @@ model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
 model.fc = nn.Linear(in_features=512, out_features=10, bias=True)
 mnist_state = torch.load("models/mnist_resnet18.model")
 model.load_state_dict(mnist_state)
-model = model.to('cuda')
+model = model.to("cuda")
 
 # %%
 if os.path.exists("perturbs/resnet_on_single_point.model"):
@@ -46,12 +47,12 @@ densities = [-0.05, 0.05]
 
 #%%
 criterion = nn.CrossEntropyLoss()
-for i, (attack_image, attack_label) in enumerate(testloader): 
-    attack_image = attack_image.to('cuda')
-    attack_label = attack_label.to('cuda')
+for i, (attack_image, attack_label) in enumerate(testloader):
+    attack_image = attack_image.to("cuda")
+    attack_label = attack_label.to("cuda")
 
     # Create a random array of perturbation
-    perturb = torch.zeros([10, 1, 28, 28], requires_grad=True, device='cuda')
+    perturb = torch.zeros([10, 1, 28, 28], requires_grad=True, device="cuda")
 
     # Epsilon defines the maximum density (-e, e). It should be
     # in the range of the training set's scaled value.
@@ -77,10 +78,10 @@ for i, (attack_image, attack_label) in enumerate(testloader):
             break
 
     # Save the perturbations
-    perturb = perturb.to('cpu')
+    perturb = perturb.to("cpu")
     perturbs.append(perturb)
 
 # %%
 perturbs = torch.stack(perturbs)
 purturbs = perturbs.reshape(-1, 28, 28)
-torch.save(perturbs, "perturbs/resnet_on_single_point.model")
+torch.save(perturbs, "perturbs/resnet_on_single_point.pt")
