@@ -62,6 +62,8 @@ else:
     perturbs = []
 densities = [-0.05, 0.05]
 
+f = open("codes/attacking/on_single_point/adversarial_on_cnn_no_reinforcement.log", "w")
+
 #%%
 criterion = nn.CrossEntropyLoss()
 for i, (attack_image, attack_label) in enumerate(mnist_testset):
@@ -101,6 +103,7 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
 
     loss_arg = np.array(round_losses).argmin()
     print(round_losses[loss_arg])
+    f.write(f"{round_losses[loss_arg]}\n")
     perturbs.append(round_losses[loss_arg])
 
 # %%
