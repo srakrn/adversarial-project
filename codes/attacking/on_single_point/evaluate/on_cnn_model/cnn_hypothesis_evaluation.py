@@ -1,14 +1,15 @@
 #%%
-import torch
-from torch import nn, optim
-import torch.nn.functional as F
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import os
-from sklearn.metrics import confusion_matrix 
+import torch
+import torch.nn.functional as F
+from sklearn.metrics import confusion_matrix
+from torch import nn, optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 #%%
 torch.manual_seed(0)
@@ -51,8 +52,8 @@ mnist_state = torch.load("models/mnist_cnn.model")
 model.load_state_dict(mnist_state)
 
 # %%
-fcnn_perturbs = torch.load("models/fcnn_perturbs.model")
-cnn_perturbs = torch.load("models/cnn_perturbs.model")
+fcnn_perturbs = torch.load("perturbs/on_single_point/fcnn_on_single_point.pt")
+cnn_perturbs = torch.load("perturbs/on_single_point/cnn_on_single_point.pt")
 
 # %%
 fig, axs = plt.subplots(2, 5, figsize=(10, 4))
@@ -70,7 +71,7 @@ plt.show()
 
 # %%
 n_perturbs = 0
-perturbs_array = "fcnn_perturbs"
+perturbs_array = "cnn_perturbs"
 density = 0.2
 perturb = eval(perturbs_array)[n_perturbs].reshape(1, 28, 28)
 
@@ -112,7 +113,12 @@ plt.legend()
 plt.show()
 
 # %%
-predicted_targets = model(mnist_testset.data.float().reshape(-1, 1, 28, 28)).argmax(axis=1).detach().numpy()
+predicted_targets = (
+    model(mnist_testset.data.float().reshape(-1, 1, 28, 28))
+    .argmax(axis=1)
+    .detach()
+    .numpy()
+)
 actual_targets = mnist_testset.targets.numpy()
 print("Model's confusion matrix")
 cm = confusion_matrix(actual_targets, predicted_targets)
@@ -120,7 +126,10 @@ print(cm)
 
 # %%
 predicted_adversarial_targets = (
-    model(mnist_testset.data.float().reshape(-1, 1, 28, 28) + (density * perturb).reshape(1, 1, 28, 28))
+    model(
+        mnist_testset.data.float().reshape(-1, 1, 28, 28)
+        + (density * perturb).reshape(1, 1, 28, 28)
+    )
     .argmax(axis=1)
     .detach()
     .numpy()
