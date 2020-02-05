@@ -70,20 +70,22 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
     attack_image, attack_label = mnist_trainset[i]
     feeding_attack_image = attack_image.reshape(1, 1, 28, 28)
     feeding_attack_label = torch.tensor([attack_label])
-    # Fetch one attack image
-
-    # Create a random array of perturbation
-    perturb = torch.zeros([1, 1, 28, 28], requires_grad=True)
 
     # Epsilon defines the maximum density (-e, e). It should be
     # in the range of the training set's scaled value.
     epsilon = 1
+    epochs = 100
+    n_attempts = 10
 
-    adversarial_optimizer = optim.SGD([perturb], lr=0.1)
+    round_perturbs = []
+    round_losses = []
 
     # Train the adversarial noise, maximising the loss
-    for _ in range(3):
-        epochs = 1000
+    for _ in range(10):
+        # Create a random array of perturbation
+        perturb = torch.randn([1, 1, 28, 28], requires_grad=True)
+        adversarial_optimizer = optim.SGD([perturb], lr=0.05)
+
         for e in range(epochs):
             running_loss = 0
             adversarial_optimizer.zero_grad()
@@ -94,12 +96,12 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
             adversarial_optimizer.step()
             running_loss += loss.item()
             perturb.data.clamp_(-epsilon, epsilon)
-        print(running_loss)
-        if running_loss < -20:
-            break
+        round_perturbs.append(perturb)
+        round_losses.append(running_loss)
 
-    # Save the perturbations
-    perturbs.append(perturb)
+    loss_arg = np.array(round_losses).argmin()
+    print(round_losses[loss_arg])
+    perturbs.append(round_losses[loss_arg])
 
 # %%
 perturbs = torch.stack(perturbs)
