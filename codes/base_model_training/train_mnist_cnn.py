@@ -1,11 +1,11 @@
-import torch
-from torch import nn, optim
-import torch.nn.functional as F
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import torch
+import torch.nn.functional as F
+from torch import nn, optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
 
 torch.manual_seed(0)
 
@@ -48,8 +48,8 @@ class MnistCnn(nn.Module):
 
 net = MnistCnn()
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.01)
-epochs = 5
+optimizer = optim.SGD(net.parameters(), lr=0.03)
+epochs = 10
 for e in range(epochs):
     running_loss = 0
     for images, labels in trainloader:
@@ -64,4 +64,4 @@ for e in range(epochs):
     else:
         print(f"Training loss: {running_loss/len(trainloader)}")
 
-torch.save(net.state_dict(), "mnist_cnn.model")
+torch.save(net.state_dict(), "models/mnist_cnn.model")
