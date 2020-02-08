@@ -104,8 +104,10 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
     loss_arg = np.array(round_losses).argmin()
     print(round_losses[loss_arg])
     f.write(f"{round_losses[loss_arg]}\n")
-    perturbs.append(round_losses[loss_arg])
+    perturbs.append(round_perturbs[loss_arg])
 
 # %%
 perturbs = torch.stack(perturbs)
+
+# %%
 torch.save(perturbs, "perturbs/on_single_point/cnn_on_single_point.pt")
