@@ -1,4 +1,4 @@
-#%%
+# %%
 import os
 
 import matplotlib.pyplot as plt
@@ -10,10 +10,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-#%%
-torch.manual_seed(0)
-
-#%%
+# %%
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
 )
@@ -26,7 +23,7 @@ mnist_testset = datasets.MNIST(
 trainloader = DataLoader(mnist_trainset, batch_size=64, shuffle=True)
 testloader = DataLoader(mnist_testset, batch_size=1, shuffle=True)
 
-# %%
+#  %%
 class MnistCnn(nn.Module):
     def __init__(self):
         super(MnistCnn, self).__init__()
@@ -47,12 +44,12 @@ class MnistCnn(nn.Module):
         return x
 
 
-# %%
+#  %%
 model = MnistCnn()
 mnist_state = torch.load("models/mnist_cnn.model")
 model.load_state_dict(mnist_state)
 
-# %%
+#  %%
 if os.path.exists("perturbs/on_single_point/cnn_on_single_point.pt"):
     print("Loading pre-existed perturbations")
     perturbs = torch.load("perturbs/on_single_point/cnn_on_single_point.pt")
@@ -64,7 +61,7 @@ densities = [-0.05, 0.05]
 
 f = open("codes/attacking/on_single_point/adversarial_on_cnn_no_reinforcement.log", "w")
 
-#%%
+# %%
 criterion = nn.CrossEntropyLoss()
 for i, (attack_image, attack_label) in enumerate(mnist_testset):
     print("Image:", i + 1)
@@ -73,8 +70,8 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
     feeding_attack_image = attack_image.reshape(1, 1, 28, 28)
     feeding_attack_label = torch.tensor([attack_label])
 
-    # Epsilon defines the maximum density (-e, e). It should be
-    # in the range of the training set's scaled value.
+    #  Epsilon defines the maximum density (-e, e). It should be
+    #  in the range of the training set's scaled value.
     epsilon = 1
     epochs = 100
     n_attempts = 10
@@ -82,9 +79,9 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
     round_perturbs = []
     round_losses = []
 
-    # Train the adversarial noise, maximising the loss
+    #  Train the adversarial noise, maximising the loss
     for _ in range(10):
-        # Create a random array of perturbation
+        #  Create a random array of perturbation
         perturb = torch.randn([1, 1, 28, 28], requires_grad=True)
         adversarial_optimizer = optim.SGD([perturb], lr=0.05)
 
@@ -106,8 +103,8 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
     f.write(f"{round_losses[loss_arg]}\n")
     perturbs.append(round_perturbs[loss_arg])
 
-# %%
+#  %%
 perturbs = torch.stack(perturbs)
 
-# %%
+#  %%
 torch.save(perturbs, "perturbs/on_single_point/cnn_on_single_point.pt")
