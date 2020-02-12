@@ -117,3 +117,4 @@ temp
 mnist
 cifar10
 tensorboard
+.ipynb_checkpoints
