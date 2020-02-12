@@ -1,16 +1,11 @@
-#%%
-import os
-import pickle
-import time
-
+# %%
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.linalg as la
 import pandas as pd
 import torch
 import torch.nn.functional as F
 from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
+from sklearn.metrics import classification_report
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -21,30 +16,17 @@ transform = transforms.Compose(
 )
 
 #%%
-mnist_testset = datasets.MNIST(
-    root="mnist", train=False, download=True, transform=transform
-)
-
-# %%
-fcnn_perturbs = torch.load("perturbs/on_single_point/fcnn_on_single_point.pt")
-fcnn_perturbs = fcnn_perturbs.detach().numpy()
-fcnn_perturbs = fcnn_perturbs.reshape(-1, 28 * 28)
-fcnn_perturbs.shape
-
-# %%
-torch.manual_seed(0)
-
 mnist_trainset = datasets.MNIST(
     root="mnist", train=True, download=True, transform=transform
 )
-
 mnist_testset = datasets.MNIST(
     root="mnist", train=False, download=True, transform=transform
 )
-trainloader = DataLoader(mnist_trainset, batch_size=100, shuffle=False)
-testloader = DataLoader(mnist_testset, batch_size=100, shuffle=False)
 
+trainloader = DataLoader(mnist_trainset, batch_size=64, shuffle=True)
+testloader = DataLoader(mnist_testset, batch_size=1, shuffle=False)
 
+#%%
 class MnistFcnn(nn.Module):
     def __init__(self):
         super(MnistFcnn, self).__init__()
@@ -60,16 +42,49 @@ class MnistFcnn(nn.Module):
         return x
 
 
+#%%
 model = MnistFcnn()
-mnist_state = torch.load("models/mnist_fcnn.model")
-model.load_state_dict(mnist_state)
+
+#%%
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adagrad(model.parameters(), lr=0.03)
+
+#%%
+epochs = 10
+for e in range(epochs):
+    running_loss = 0
+    for images, labels in trainloader:
+        optimizer.zero_grad()
+        output = model(images)
+        loss = criterion(output, labels)
+        loss.backward()
+        optimizer.step()
+
+        running_loss += loss.item()
+    else:
+        print(f"Training loss: {running_loss/len(trainloader)}")
+
+# %%
+y_test = []
+y_pred = []
+for image, label in testloader:
+    y_test.append(label.item())
+    y_pred.append(model(image).argmax(axis=1).item())
+
+print(classification_report(y_test, y_pred))
+
+# %%
+n = 1000
+density = 0.2
 
 # %%
 def calculate_k_perturbs(
-    model, perturbs, training_set, k, n_epoches=20, verbose=False, log=False
+    model, training_set, k, n_epoches=20, verbose=False, log=False
 ):
+    loader = DataLoader(training_set, batch_size=len(training_set), shuffle=False)
+    X, y = next(iter(loader))
     km = KMeans(n_clusters=k)
-    km_clusters = km.fit_predict(perturbs.reshape(len(perturbs), -1))
+    km_clusters = km.fit_predict(X.reshape(len(X), -1))
     print(f"Training {k} perturbs")
 
     k_points = []
@@ -116,20 +131,29 @@ def calculate_k_perturbs(
 
 
 # %%
-ks = range(1, 101)
-k_result = [
-    calculate_k_perturbs(
-        model,
-        fcnn_perturbs,
-        mnist_testset,
-        i,
-        n_epoches=500,
-        verbose=True,
-        log="perturbs/partitioned/fcnn/on_perturb_gradientdesc.log",
-    )
-    for i in ks
-]
+attack_targets, attack_perturbs, attack_clusters = calculate_k_perturbs(
+    model, mnist_trainset, n, verbose=True
+)
 
 # %%
-with open("perturbs/partitioned/fcnn/on_perturb_gradientdesc.pkl", "wb") as f:
-    pickle.dump(k_result, f)
+fig, axs = plt.subplots(10, 10, figsize=(10, 10))
+for ax, perturb in zip(axs.ravel(), attack_perturbs):
+    ax.imshow(perturb.reshape(28, 28))
+plt.show()
+
+# %%
+y_test = []
+y_pred = []
+for i, (image, label) in enumerate(testloader):
+    for j, attack_target in enumerate(attack_targets):
+        if i in attack_target:
+            perturb = torch.tensor(attack_perturbs[j]).reshape(1, 1, 28, 28)
+            if i % 100 == 0:
+                print(i, j)
+    x = image + density * perturb
+    y_test.append(label.item())
+    y_pred.append(model(x).argmax().item())
+
+print(classification_report(y_test, y_pred))
+
+# %%
