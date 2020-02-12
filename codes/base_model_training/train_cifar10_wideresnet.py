@@ -1,8 +1,4 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import torch
-import torch.nn.functional as F
 import torchvision.models as models
 from sklearn.metrics import accuracy_score
 from torch import nn, optim
@@ -23,10 +19,10 @@ testset = datasets.CIFAR10(
     root="cifar10", train=False, download=True, transform=transform
 )
 
-trainloader = torch.utils.data.DataLoader(
+trainloader = DataLoader(
     trainset, batch_size=128, shuffle=True, num_workers=2
 )
-testloader = torch.utils.data.DataLoader(
+testloader = DataLoader(
     testset, batch_size=128, shuffle=False, num_workers=2
 )
 

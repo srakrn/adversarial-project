@@ -1,12 +1,8 @@
 import torch
-from torch import nn, optim
-import torch.nn.functional as F
-from torchvision import datasets, transforms
 import torchvision.models as models
+from torch import nn, optim
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
+from torchvision import datasets, transforms
 
 torch.manual_seed(0)
 
