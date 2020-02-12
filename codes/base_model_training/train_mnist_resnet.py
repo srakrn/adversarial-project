@@ -23,15 +23,14 @@ testloader = DataLoader(mnist_testset, batch_size=100, shuffle=True)
 
 model = models.resnet18(pretrained=True)
 model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
-for param in model.parameters():
-    param.requires_grad = False
 model.fc = nn.Linear(in_features=512, out_features=10, bias=True)
-model.fc.weight.requires_grad = True
+for param in model.parameters():
+    param.requires_grad = True
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-epochs = 50
+epochs = 10
 testing_losses = []
 model = model.to("cuda")
 for e in range(epochs):
