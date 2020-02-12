@@ -114,7 +114,6 @@ temp
 .log
 *.code-workspace
 
-mnist
-cifar10
-tensorboard
-.ipynb_checkpoints
+/mnist
+/cifar10
+/tensorboard
