@@ -33,9 +33,9 @@ trainloader = DataLoader(trainset, batch_size=32, shuffle=True, num_workers=2)
 testloader = DataLoader(testset, batch_size=32, shuffle=False, num_workers=2)
 
 
-class MnistCnn(nn.Module):
+class CifarCnn(nn.Module):
     def __init__(self):
-        super(MnistCnn, self).__init__()
+        super(CifarCnn, self).__init__()
         self.conv1 = nn.Conv2d(3, 8, 3)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(8, 16, 3)
@@ -53,7 +53,7 @@ class MnistCnn(nn.Module):
         return x
 
 
-model = MnistCnn()
+model = CifarCnn()
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters())
