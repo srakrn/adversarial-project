@@ -113,3 +113,7 @@ dmypy.json
 temp
 .log
 *.code-workspace
+
+mnist
+cifar10
+tensorboard
