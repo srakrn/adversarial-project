@@ -1,7 +1,8 @@
 # %%
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import torch
 import torch.nn.functional as F
 from sklearn.cluster import KMeans
@@ -318,7 +319,6 @@ for image, label in testloader:
 
 print(classification_report(y_test, y_pred))
 
-
 # %%
 y_test = []
 y_pred = []
@@ -329,6 +329,3 @@ for (image, label), perturb in zip(testloader, trainset_perturbs):
     )
 
 print(classification_report(y_test, y_pred))
-
-
-# %%
