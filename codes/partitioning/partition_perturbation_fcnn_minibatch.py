@@ -1,4 +1,4 @@
-#%%
+# %%
 import os
 import pickle
 import time
@@ -15,29 +15,29 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-#%%
+# %%
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
 )
 
-#%%
+# %%
 mnist_testset = datasets.MNIST(
     root="mnist", train=False, download=True, transform=transform
 )
 
-# %%
+#  %%
 fcnn_perturbs = torch.load("perturbs/on_single_point/fcnn_on_single_point.pt")
 fcnn_perturbs = fcnn_perturbs.detach().numpy()
 fcnn_perturbs = fcnn_perturbs.reshape(-1, 28 * 28)
 fcnn_perturbs.shape
 
-# %%
+#  %%
 fcnn_adver_pred = np.load(
     "models/classification_results/on_single_point/cnn_model/cnn_testset_adver.npy"
 )
 fcnn_adver_pred.shape
 
-# %%
+#  %%
 torch.manual_seed(0)
 
 mnist_trainset = datasets.MNIST(
@@ -70,7 +70,7 @@ model = MnistFcnn()
 mnist_state = torch.load("models/mnist_fcnn.model")
 model.load_state_dict(mnist_state)
 
-# %%
+#  %%
 def calculate_k_perturbs(
     model, perturbs, training_set, k, n_epoches=20, verbose=False, log=False
 ):
@@ -94,7 +94,7 @@ def calculate_k_perturbs(
         optimizer = optim.SGD([perturb], lr=0.03)
 
         if verbose:
-            print(f"\tTraining #{i+1} perturb")
+            print(f"\tTraining # {i+1} perturb")
             print(f"\tThis set of perturbation will attack {len(data)} data points.")
 
         for e in range(n_epoches):
@@ -121,7 +121,7 @@ def calculate_k_perturbs(
     return [k_points, k_perturbs, km]
 
 
-# %%
+#  %%
 ks = range(1, 101)
 k_result = [
     calculate_k_perturbs(
@@ -136,6 +136,6 @@ k_result = [
     for i in ks
 ]
 
-# %%
+#  %%
 with open("perturbs/partitioned/fcnn/on_perturb_minibatch.pkl", "wb") as f:
     pickle.dump(k_result, f)
