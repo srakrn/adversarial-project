@@ -1,4 +1,4 @@
-#%%
+# %%
 import os
 
 import matplotlib.pyplot as plt
@@ -10,10 +10,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-#%%
-torch.manual_seed(0)
-
-#%%
+# %%
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
 )
@@ -26,7 +23,7 @@ mnist_testset = datasets.MNIST(
 trainloader = DataLoader(mnist_trainset, batch_size=64, shuffle=True)
 testloader = DataLoader(mnist_testset, batch_size=1, shuffle=True)
 
-# %%
+#  %%
 class MnistFcnn(nn.Module):
     def __init__(self):
         super(MnistFcnn, self).__init__()
@@ -42,12 +39,12 @@ class MnistFcnn(nn.Module):
         return x
 
 
-# %%
+#  %%
 model = MnistFcnn()
 mnist_state = torch.load("models/mnist_fcnn.model")
 model.load_state_dict(mnist_state)
 
-# %%
+#  %%
 if os.path.exists("perturbs/on_single_point/fcnn_testset_on_single_point.pt"):
     print("Loading pre-existed perturbations")
     perturbs = torch.load("perturbs/on_single_point/fcnn_testset_on_single_point.pt")
@@ -57,24 +54,24 @@ else:
     perturbs = []
 densities = [-0.05, 0.05]
 
-#%%
+# %%
 criterion = nn.CrossEntropyLoss()
 for i, (attack_image, attack_label) in enumerate(mnist_testset):
     print("Image:", i + 1)
     feeding_attack_image = attack_image.reshape(1, -1)
     feeding_attack_label = torch.tensor([attack_label])
-    # Fetch one attack image
+    #  Fetch one attack image
 
-    # Create a random array of perturbation
+    #  Create a random array of perturbation
     perturb = torch.zeros([1, 28 * 28], requires_grad=True)
 
-    # Epsilon defines the maximum density (-e, e). It should be
-    # in the range of the training set's scaled value.
+    #  Epsilon defines the maximum density (-e, e). It should be
+    #  in the range of the training set's scaled value.
     epsilon = 1
 
     adversarial_optimizer = optim.SGD([perturb], lr=0.1)
 
-    # Train the adversarial noise, maximising the loss
+    #  Train the adversarial noise, maximising the loss
     epochs = 1000
     for e in range(epochs):
         running_loss = 0
@@ -88,18 +85,18 @@ for i, (attack_image, attack_label) in enumerate(mnist_testset):
         perturb.data.clamp_(-epsilon, epsilon)
     print("\tNoise loss:", -1 * loss.item())
 
-    # Save the perturbations
+    #  Save the perturbations
     perturbs.append(perturb)
 
-# %%
+#  %%
 perturbs = torch.stack(perturbs)
 torch.save(perturbs, "perturbs/on_single_point/fcnn_on_single_point.pt")
 
-# %%
+#  %%
 fig, axs = plt.subplots(2, 5, figsize=(10, 4))
 for p, ax in zip(perturbs, axs.ravel()):
     ax.imshow(p.detach().numpy().reshape(28, 28))
 plt.show()
 
 
-# %%
+#  %%
