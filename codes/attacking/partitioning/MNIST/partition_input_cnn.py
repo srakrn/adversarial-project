@@ -5,12 +5,8 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.linalg as la
-import pandas as pd
 import torch
 import torch.nn.functional as F
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -32,6 +28,12 @@ fcnn_perturbs = torch.load("perturbs/on_single_point/fcnn_on_single_point.pt")
 fcnn_perturbs = fcnn_perturbs.detach().numpy()
 fcnn_perturbs = fcnn_perturbs.reshape(-1, 28 * 28)
 fcnn_perturbs.shape
+
+#  %%
+fcnn_adver_pred = np.load(
+    "models/classification_results/on_single_point/cnn_model/cnn_testset_adver.npy"
+)
+fcnn_adver_pred.shape
 
 #  %%
 torch.manual_seed(0)
@@ -67,20 +69,15 @@ mnist_state = torch.load("models/mnist_fcnn.model")
 model.load_state_dict(mnist_state)
 
 #  %%
+#  %%
 ks = range(1, 101)
 k_result = [
     calculate_k_perturbs(
-        model,
-        fcnn_perturbs,
-        mnist_testset,
-        i,
-        n_epoches=500,
-        verbose=True,
-        log="perturbs/partitioned/fcnn/on_perturb_gradientdesc.log",
+        model, fcnn_perturbs, mnist_testset, i, n_epoches=500, verbose=True
     )
     for i in ks
 ]
 
 #  %%
-with open("perturbs/partitioned/fcnn/on_perturb.pkl", "wb") as f:
+with open("perturbs/partitioned/cnn/on_input.pkl", "wb") as f:
     pickle.dump(k_result, f)
