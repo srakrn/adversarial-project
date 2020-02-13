@@ -32,12 +32,6 @@ fcnn_perturbs = fcnn_perturbs.reshape(-1, 28 * 28)
 fcnn_perturbs.shape
 
 #  %%
-fcnn_adver_pred = np.load(
-    "models/classification_results/on_single_point/cnn_model/cnn_testset_adver.npy"
-)
-fcnn_adver_pred.shape
-
-#  %%
 torch.manual_seed(0)
 
 mnist_trainset = datasets.MNIST(
@@ -87,7 +81,7 @@ def calculate_k_perturbs(
             log_f = open(log, "a")
         idx = np.where(km_clusters == i)[0]
         data = [training_set[j] for j in idx]
-        trainloader = DataLoader(data, batch_size=50, shuffle=False)
+        trainloader = DataLoader(data, batch_size=len(data), shuffle=False)
 
         perturb = torch.zeros([1, 28 * 28], requires_grad=True)
         criterion = nn.CrossEntropyLoss()
@@ -131,11 +125,11 @@ k_result = [
         i,
         n_epoches=500,
         verbose=True,
-        log="perturbs/partitioned/fcnn/on_perturb_minibatch.log",
+        log="perturbs/partitioned/fcnn/on_perturb_gradientdesc.log",
     )
     for i in ks
 ]
 
 #  %%
-with open("perturbs/partitioned/fcnn/on_perturb_minibatch.pkl", "wb") as f:
+with open("perturbs/partitioned/cnn/on_perturb.pkl", "wb") as f:
     pickle.dump(k_result, f)
