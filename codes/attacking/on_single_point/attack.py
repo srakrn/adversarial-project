@@ -21,6 +21,8 @@ def maxloss(model, criterion, dataset, epsilon=1, lr=0.1, n_epoches=10, verbose=
         torchvision-like dataset
     epsilon: float
         Maximum value to clamp for the perturbation
+    lr: float
+        Learning rate for the perturbation optimizer
     n_epohes: int
         Epoches to maximise the loss
     verbose: bool
@@ -62,7 +64,7 @@ def maxloss(model, criterion, dataset, epsilon=1, lr=0.1, n_epoches=10, verbose=
     return perturbs
 
 
-def fgsm(model, criterion, dataset, epsilon=-1, verbose=False):
+def fgsm(model, criterion, dataset, verbose=False):
     """Generate perturbations on the dataset when given a model and a criterion
 
     Parameters
@@ -73,8 +75,6 @@ def fgsm(model, criterion, dataset, epsilon=-1, verbose=False):
         A criterion function
     dataset: torchvision.datasets
         torchvision-like dataset
-    epsilon: float
-        Maximum value to clamp for the perturbation
     verbose: bool
         Verbosity setting
 
@@ -93,14 +93,9 @@ def fgsm(model, criterion, dataset, epsilon=-1, verbose=False):
         if verbose:
             print("Image:", i + 1)
 
-        #  Create a random array of perturbation
-        perturb = torch.zeros(image.shape, requires_grad=True)
-
         #  Epsilon defines the maximum density (-e, e). It should be
         #  in the range of the training set's scaled value.
         epsilon = 1
-
-        adversarial_optimizer = optim.Adam([perturb], lr=0.1)
 
         image.requires_grad = True
 
