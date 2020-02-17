@@ -1,11 +1,15 @@
 # %%
 import os
+import sys
 
 import torch
 from torch import nn, optim
 
-from attack import fgsm
-from mnist_helpers import mnist_fcnn_model, mnist_testset
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from attack import fgsm  # isort:skip
+from mnist_helpers import mnist_fcnn_model, mnist_testset  # isort:skip
 
 # %%
 OUTPUT_PATH = "perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_testset.pt"
