@@ -3,6 +3,7 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.linalg as la
 import torch
 import torch.nn.functional as F
 from sklearn.cluster import KMeans
@@ -16,7 +17,6 @@ transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
 )
 
-
 # %%
 mnist_trainset = datasets.MNIST(
     root="mnist", train=True, download=True, transform=transform
@@ -27,12 +27,11 @@ mnist_testset = datasets.MNIST(
 
 
 # %%
-trainloader = DataLoader(mnist_trainset, batch_size=64, shuffle=True)
+trainloader = DataLoader(mnist_trainset, batch_size=1, shuffle=False)
 full_trainloader = DataLoader(
-    mnist_trainset, batch_size=len(mnist_trainset), shuffle=True
+    mnist_trainset, batch_size=len(mnist_trainset), shuffle=False
 )
 testloader = DataLoader(mnist_testset, batch_size=1, shuffle=False)
-
 
 # %%
 class MnistFcnn(nn.Module):
@@ -68,10 +67,10 @@ print(classification_report(y_test, y_pred))
 
 # %%
 trainset_perturbs = torch.load(
-    "perturbs/on_single_point/fcnn_trainset_on_single_point.pt"
+    "perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_trainset.pt"
 )
 testset_perturbs = torch.load(
-    "perturbs/on_single_point/fcnn_testset_on_single_point.pt"
+    "perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_testset.pt"
 )
 
 
@@ -86,13 +85,11 @@ for (image, label), perturb in zip(testloader, trainset_perturbs):
 
 print(classification_report(y_test, y_pred))
 
-
 # %%
 plt.imshow(
     (image + 0.2 * perturb.reshape(1, 1, 28, 28)).reshape(28, 28).detach().numpy()
 )
 plt.show()
-
 
 # %%
 def calculate_k_perturbs(
@@ -100,7 +97,7 @@ def calculate_k_perturbs(
 ):
     loader = DataLoader(training_set, batch_size=len(training_set), shuffle=False)
     X, y = next(iter(loader))
-    km = KMeans(n_clusters=k, verbose=verbose, n_init=3)
+    km = KMeans(n_clusters=k, verbose=verbose, n_init=1)
     km_clusters = km.fit_predict(clusterer.reshape(len(clusterer), -1))
     print(f"Training {k} perturbs")
 
@@ -145,7 +142,6 @@ def calculate_k_perturbs(
         log_f.write(",".join([f"{i:.5f}" for i in losses]))
         log_f.write("\n")
     return [k_points, k_perturbs, km]
-
 
 # %%
 train_target, train_perturb, train_km = calculate_k_perturbs(
@@ -318,6 +314,7 @@ for image, label in testloader:
     y_pred.append(model(image).argmax(axis=1).item())
 
 print(classification_report(y_test, y_pred))
+
 
 # %%
 y_test = []
