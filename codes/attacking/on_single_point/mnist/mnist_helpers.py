@@ -1,5 +1,6 @@
 # %%
 import os
+import sys
 
 import numpy as np
 import torch
@@ -8,8 +9,6 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchvision.models import resnet18
-
-import attack
 
 # %%
 FCNN_PATH = "models/mnist_fcnn.model"
