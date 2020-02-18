@@ -108,6 +108,7 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/python
+
 .ipynb_checkpoints
 .vscode
 temp
