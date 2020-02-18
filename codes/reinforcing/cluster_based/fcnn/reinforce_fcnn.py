@@ -89,5 +89,5 @@ for (image, label), perturb in zip(mnist_helpers.testloader, trainset_perturbs):
     y_pred.append(
         model(image + 0.2 * perturb.reshape(1, 1, 28, 28)).argmax(axis=1).item()
     )
-
+print("Adversarial on reinforced model report:")
 print(classification_report(y_test, y_pred))
