@@ -25,11 +25,11 @@ mnist_trainset = datasets.MNIST(
 mnist_testset = datasets.MNIST(
     root="mnist", train=False, download=True, transform=transform
 )
-trainloader = DataLoader(mnist_trainset, batch_size=1, shuffle=False, drop_last=True)
+trainloader = DataLoader(mnist_trainset, batch_size=1, shuffle=False)
 full_trainloader = DataLoader(
     mnist_trainset, batch_size=len(mnist_trainset), shuffle=False
 )
-testloader = DataLoader(mnist_testset, batch_size=1, shuffle=False, drop_last=True)
+testloader = DataLoader(mnist_testset, batch_size=1, shuffle=False)
 
 #  %%
 class MnistFcnn(nn.Module):
