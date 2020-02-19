@@ -1,4 +1,5 @@
 # %%
+import logging
 import os
 import sys
 
@@ -11,11 +12,19 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from attack import maxloss  # isort:skip
 from mnist_helpers import mnist_fcnn_model, mnist_testset  # isort:skip
 
+logging.basicconfig(
+    filename=f"logs/{os.path.basename(__file__)}.log",
+    filemode="a",
+    level="info",
+    format="%(process)d-%(levelname)s-%(asctime)s-%(message)s",
+)
 # %%
 OUTPUT_PATH = "perturbs/on_single_point/mnist/fcnn_maxloss_perturbs_testset.pt"
 
 # %%
 criterion = nn.CrossEntropyLoss()
+logging.info("Started running")
 perturbs = maxloss(mnist_fcnn_model, criterion, mnist_testset, verbose=True)
+logging.info("Ended running")
 #  %%
 torch.save(perturbs, OUTPUT_PATH)
