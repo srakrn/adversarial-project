@@ -1,4 +1,5 @@
 # %%
+import logging
 import os
 import sys
 
@@ -15,7 +16,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import mnist_helpers  # isort:skip
 import reinforce  # isort:skip
 
-#%%
+logging.basicConfig(
+    filename=f"logs/{os.path.basename(__file__)}.log",
+    filemode="a",
+    level="INFO",
+    format="%(process)d-%(levelname)s-%(asctime)s-%(message)s",
+)
+
+# %%
 model = mnist_helpers.mnist_cnn_model
 
 # %%
@@ -37,6 +45,7 @@ for image, label in mnist_helpers.testloader:
     y_pred.append(model(image).argmax(axis=1).item())
 print("Original model report:")
 print(classification_report(y_test, y_pred))
+logging.info(classification_report(y_test, y_pred))
 
 # %%
 y_test = []
@@ -48,15 +57,18 @@ for (image, label), perturb in zip(mnist_helpers.testloader, testset_perturbs):
     )
 print("Adversarial on original model report:")
 print(classification_report(y_test, y_pred))
+logging.info(classification_report(y_test, y_pred))
 
 
 # %%
 k = 100
 
 # %%
+logging.info(f"Started calculating {k} perturbs")
 train_target, train_perturb, train_km = reinforce.calculate_k_perturbs(
     model, mnist_helpers.mnist_trainset, trainset_perturbs.detach().numpy(), k
 )
+logging.info(f"Ended calculating {k} perturbs")
 
 # %%
 ad = reinforce.AdversarialDataset(
@@ -65,11 +77,11 @@ ad = reinforce.AdversarialDataset(
 adversarialloader = DataLoader(ad, batch_size=16, shuffle=True)
 
 # %%
-print(f"Started reinforcing on {reinforce.get_time()}")
+logging.info(f"Started reinforcing")
 reinforced_model = reinforce.k_reinforce(
     model, mnist_helpers.trainloader, adversarialloader
 )
-print(f"Finished reinforcing on {reinforce.get_time()}")
+logging.info(f"Ended reinforcing")
 
 # %%
 y_test = []
@@ -79,6 +91,7 @@ for image, label in mnist_helpers.testloader:
     y_pred.append(model(image).argmax(axis=1).item())
 print("Reinforced model report:")
 print(classification_report(y_test, y_pred))
+logging.info(classification_report(y_test, y_pred))
 
 
 # %%
@@ -91,3 +104,4 @@ for (image, label), perturb in zip(mnist_helpers.testloader, trainset_perturbs):
     )
 print("Adversarial on reinforced model report:")
 print(classification_report(y_test, y_pred))
+logging.info(classification_report(y_test, y_pred))
