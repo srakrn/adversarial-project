@@ -1,4 +1,5 @@
 # %%
+import logging
 import os
 import time
 
@@ -10,6 +11,7 @@ from sklearn.metrics import classification_report
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
+log = logging.getLogger(__name__)
 
 # %%
 def get_time():
@@ -63,10 +65,10 @@ def calculate_k_perturbs(
     # Load the dataset and begin the clustering process
     loader = DataLoader(training_set, batch_size=len(training_set), shuffle=False)
     X, y = next(iter(loader))
-    print(f"Starting of k-Means at: {get_time()}")
+    log.info(f"Starting of k-Means at: {get_time()}")
     km = KMeans(n_clusters=k, verbose=verbose, n_init=1)
     km_clusters = km.fit_predict(clusterer.reshape(len(clusterer), -1))
-    print(f"Ending of k-Means and starting of training at: {get_time()}")
+    log.info(f"Ending of k-Means and starting of training at: {get_time()}")
 
     # Create empty arrays to store results
     k_points = []
@@ -108,7 +110,7 @@ def calculate_k_perturbs(
             perturb = torch.mean(images.grad.data, dim=0).sign()
         k_points.append(idx)
         k_perturbs.append(perturb.detach())
-    print(f"Completion of calculation: {get_time()}")
+    log.info(f"Completion of calculation: {get_time()}")
     k_perturbs = torch.stack(k_perturbs)
     return [k_points, k_perturbs, km]
 
@@ -189,8 +191,9 @@ def k_reinforce(
     adversarial_weight=2,
     criterion=nn.CrossEntropyLoss,
     optimizer=optim.Adam,
+    drop_last=False,
 ):
-    print(f"Training started: {get_time()}")
+    log.info(f"Training started: {get_time()}")
     criterion = criterion(reduction="none")
     optimizer = optimizer(model.parameters())
     for e in range(n_epoches):
@@ -206,15 +209,19 @@ def k_reinforce(
                     for i in range(len(labels) + len(adver_labels))
                 ]
             ).float()
-            optimizer.zero_grad()
+            if (
+                not drop_last
+                or len(w) == trainloader.batch_size + adversarialloader.batch_size
+            ):
+                optimizer.zero_grad()
 
-            output = F.log_softmax(model(X), dim=1)
-            loss = torch.dot(criterion(output, y), w)
-            loss.backward()
-            optimizer.step()
+                output = F.log_softmax(model(X), dim=1)
+                loss = torch.dot(criterion(output, y), w)
+                loss.backward()
+                optimizer.step()
 
-            running_loss += loss.item()
+                running_loss += loss.item()
         else:
             print(f"\tTraining loss: {running_loss/len(trainloader)}")
-    print(f"Training ended: {get_time()}")
+    log.info(f"Training ended: {get_time()}")
     return model
