@@ -100,7 +100,7 @@ def fgsm(model, criterion, dataset, verbose=False):
         image.requires_grad = True
 
         output = model(image)
-        loss = -criterion(output, label)
+        loss = criterion(output, label)
         loss.backward()
 
         perturb = image.grad.data.sign()
