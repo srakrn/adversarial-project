@@ -28,10 +28,10 @@ model = mnist_helpers.mnist_cnn_model
 
 # %%
 trainset_perturbs = torch.load(
-    "perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_trainset.pt"
+    "perturbs/on_single_point/mnist/cnn_fgsm_perturbs_trainset.pt"
 )
 testset_perturbs = torch.load(
-    "perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_testset.pt"
+    "perturbs/on_single_point/mnist/cnn_fgsm_perturbs_testset.pt"
 )
 
 # %%
