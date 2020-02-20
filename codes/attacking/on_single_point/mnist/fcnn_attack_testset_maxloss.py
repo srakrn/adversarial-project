@@ -12,10 +12,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from attack import maxloss  # isort:skip
 from mnist_helpers import mnist_fcnn_model, mnist_testset  # isort:skip
 
-logging.basicconfig(
+logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
     filemode="a",
-    level="info",
+    level="INFO",
     format="%(process)d-%(levelname)s-%(asctime)s-%(message)s",
 )
 # %%
