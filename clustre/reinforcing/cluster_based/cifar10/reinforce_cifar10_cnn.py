@@ -95,7 +95,7 @@ logging.info(classification_report(y_test, y_pred))
 # %%
 y_test = []
 y_pred = []
-for (image, label), perturb in zip(cifar10_helpers.testloader, trainset_perturbs):
+for (image, label), perturb in zip(cifar10_helpers.testloader, testset_perturbs):
     y_test.append(label.item())
     y_pred.append(
         model(image + 0.2 * perturb.reshape(1, 3, 32, 32)).argmax(axis=1).item()
