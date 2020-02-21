@@ -60,7 +60,7 @@ optimizer = optim.Adam(model.parameters())
 writer = SummaryWriter("tensorboard/cifar10_cnn")
 
 
-epochs = 100
+epochs = 20
 testing_losses = []
 for e in range(epochs):
     training_loss = 0
@@ -100,4 +100,4 @@ for e in range(epochs):
     print(f"Epoch {e + 1}")
     print(f"Train loss: {training_loss}, accuracy: {train_accuracy}")
     print(f"Testing loss: {testing_loss}, accuracy: {test_accuracy}")
-    torch.save(model.state_dict(), f"models/cifar10_cnn_{e + 1}.model")
+torch.save(model.state_dict(), f"models/cifar10_cnn_{e + 1}.model")
