@@ -12,7 +12,7 @@ from torchvision.models import resnet18
 import attack
 
 # %%
-CNN_PATH = "models/cifar10_cnn_96.model"
+CNN_PATH = "models/cifar10_cnn_20.model"
 RESNET_PATH = "models/cifar10_resnet18_90.model"
 
 # %%
