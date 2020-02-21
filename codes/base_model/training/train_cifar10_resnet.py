@@ -41,7 +41,7 @@ optimizer = optim.Adam(model.parameters())
 writer = SummaryWriter("tensorboard/cifar10_resnet")
 
 
-epochs = 100
+epochs = 20
 testing_losses = []
 model = model.to("cuda")
 for e in range(epochs):
@@ -86,4 +86,4 @@ for e in range(epochs):
     print(f"Epoch {e + 1}")
     print(f"Train loss: {training_loss}, accuracy: {train_accuracy}")
     print(f"Testing loss: {testing_loss}, accuracy: {test_accuracy}")
-    torch.save(model.state_dict(), f"models/cifar10_resnet18_{e + 1}.model")
+torch.save(model.state_dict(), f"models/cifar10_resnet18_{e + 1}.model")
