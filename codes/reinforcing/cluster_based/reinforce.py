@@ -176,8 +176,7 @@ class AdversarialDataset(Dataset):
     def __getitem__(self, idx):
         X, y = self.data[idx]
         perturb = self._get_nth_perturb(idx)
-        X += self.density * perturb.reshape(np.insert(X[0].shape, 0, 1).tolist())
-        return X, y
+        return (X + self.density * perturb), y
 
     # %%
 
