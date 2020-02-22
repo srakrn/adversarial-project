@@ -9,8 +9,6 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchvision.models import resnet18
 
-import attack
-
 # %%
 CNN_PATH = "models/cifar10_cnn_20.model"
 RESNET_PATH = "models/cifar10_resnet18_90.model"
