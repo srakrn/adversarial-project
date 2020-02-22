@@ -27,7 +27,6 @@ testset_perturbs = torch.load(
 )
 
 trainloader = DataLoader(mnist_helpers.mnist_trainset, batch_size=32)
-
 model = mnist_helpers.mnist_cnn_model
 
 # %%
