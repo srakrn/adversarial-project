@@ -104,7 +104,7 @@ def calculate_k_perturbs(
         elif attack_method == "fgsm":
             images.requires_grad = True
             output = model(images)
-            loss = -criterion(output, labels)
+            loss = criterion(output, labels)
             loss.backward()
 
             perturb = torch.mean(images.grad.data, dim=0).sign()
@@ -193,6 +193,31 @@ def k_reinforce(
     drop_last=False,
     cuda=False
 ):
+    """Reinforce the model using cluster-based method
+
+    Parameters
+    ----------
+    model: nn.module
+        Module to reinforce
+    trainloader: DataLoader
+        Dataloader for training points
+    adversarialloader: DataLoader
+        Dataloader for adversarial points
+    n_epoches: int
+        Epoches to retrain
+    train_weight: int/float
+        Weight to penalise loss on training points
+    adversarial_weight: int/float
+        Weight to penalise loss on adversarial points
+    criterion: function
+        Criterion fuction
+    optimizer: nn.optim
+        Optimizer function
+    drop_last: bool
+        If set to `True`, will drop the last batch of training point
+    cuda: bool
+        If set to `True`, will use CUDA
+    """
     if cuda:
         model = model.to("cuda")
     log.info(f"Training started: {get_time()}")
