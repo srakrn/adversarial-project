@@ -7,9 +7,12 @@ import torch
 from torch import nn, optim
 
 from clustre.helpers.cifar10_helpers import (  # isort:skip
-    cifar10_resnet_model, cifar10_testset)
+    cifar10_resnet_model,
+    testloader,
+)
 
-from clustre.helpers.cifar10_helpers import (  # isort:skip
+from clustre.attacking.on_single_point.attack import fgsm  # isort:skip
+
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
     filemode="a",
