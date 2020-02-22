@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 
 from clustre.attacking.on_single_point.attack import maxloss  # isort:skip
-from clustre.helpers.mnist_helpers import mnist_resnet_model, mnist_testset  # isort:skip
+from clustre.helpers.mnist_helpers import mnist_resnet_model, testloader  # isort:skip
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
@@ -22,7 +22,7 @@ OUTPUT_PATH = "perturbs/on_single_point/mnist/resnet_maxloss_perturbs_testset.pt
 # %%
 criterion = nn.CrossEntropyLoss()
 logging.info("Started running")
-perturbs = maxloss(mnist_resnet_model, criterion, mnist_testset, verbose=True)
+perturbs = maxloss(mnist_resnet_model, criterion, testloader, verbose=True)
 logging.info("Ended running")
 #  %%
 torch.save(perturbs, OUTPUT_PATH)
