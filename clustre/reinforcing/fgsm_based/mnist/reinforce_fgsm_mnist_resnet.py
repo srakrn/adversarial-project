@@ -29,6 +29,7 @@ testset_perturbs = torch.load(
 trainloader = DataLoader(mnist_helpers.mnist_trainset, batch_size=32)
 
 model = mnist_helpers.mnist_resnet_model
+model.eval()
 
 # %%
 epsilon = 0.2
@@ -55,9 +56,11 @@ print("Adversarial on original model report:")
 print(classification_report(y_test, y_pred))
 logging.info(classification_report(y_test, y_pred))
 # %%
+model.train()
 logging.info(f"Started reinforcing on {reinforce.get_time()}")
 reinforced_model = reinforce.fgsm_reinforce(model, trainloader)
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
+model.eval()
 
 # %%
 y_test = []
