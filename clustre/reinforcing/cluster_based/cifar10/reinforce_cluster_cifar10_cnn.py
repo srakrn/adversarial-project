@@ -77,7 +77,7 @@ adversarialloader = DataLoader(ad, batch_size=16, shuffle=True)
 # %%
 logging.info(f"Started reinforcing on {reinforce.get_time()}")
 reinforced_model = reinforce.k_reinforce(
-    model, cifar10_helpers.trainloader, adversarialloader, n_epoches=20
+    model, cifar10_helpers.trainloader, adversarialloader, n_epoches=20, adversarial_weight=5
 )
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 
