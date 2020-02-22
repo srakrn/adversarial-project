@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 
-def maxloss(model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=False):
+def maxloss(model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=False, cuda=False):
     """Generate perturbations on the dataset when given a model and a criterion
     using a maximised loss method
 
@@ -15,8 +15,6 @@ def maxloss(model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=F
         A model to attack
     criterion: function
         A criterion function
-    optimizer: torch.optim
-        An optimizer class object used to optimize the maximised loss
     loader: DataLoader
         A DataLoader instance with batch_size=1
     epsilon: float
@@ -37,14 +35,24 @@ def maxloss(model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=F
     perturbs = []
     model.eval()
 
+    if cuda:
+        model = model.to("cuda")
     for i, (image, label) in enumerate(loader):
         if verbose:
             print("Image:", i + 1)
+        if type(label) in [int, float]:
+            label = torch.tensor([label])
+        if cuda:
+            image = image.to("cuda")
+            label = label.to("cuda")
         #  Create a random array of perturbation
-        perturb = torch.zeros(image.shape, requires_grad=True)
+        if cuda:
+            perturb = torch.zeros(image.shape, device="cuda", requires_grad=True)
+        else:
+            perturb = torch.zeros(image.shape, requires_grad=True)
+
         optimizer = optim.Adam([perturb], lr=lr)
 
-        #  Train the adversarial noise, maximising the loss
         for e in range(n_epoches):
             running_loss = 0
             optimizer.zero_grad()
@@ -59,6 +67,8 @@ def maxloss(model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=F
             print("\tNoise loss:", -1 * loss.item())
         perturbs.append(perturb)
 
+    if cuda:
+        model.to("cpu")
     perturbs = torch.stack(perturbs)
     return perturbs
 

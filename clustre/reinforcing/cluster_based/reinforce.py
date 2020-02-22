@@ -203,7 +203,7 @@ def k_reinforce(
         for i, ((images, labels), (adver_images, adver_labels)) in enumerate(zip(
             trainloader, adversarialloader
         )):
-            print(f"Epoch {f} Minibatch {f}")
+            print(f"Epoch {e} Minibatch {i}")
             X = torch.cat([images, adver_images], 0)
             y = torch.cat([labels, adver_labels], 0)
             w = torch.tensor(

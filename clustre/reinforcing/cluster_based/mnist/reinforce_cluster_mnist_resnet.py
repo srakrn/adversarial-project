@@ -43,6 +43,7 @@ epsilon = 0.2
 # %%
 model.eval()
 # %%
+'''
 y_test = []
 y_pred = []
 for image, label in mnist_helpers.testloader:
@@ -51,7 +52,7 @@ for image, label in mnist_helpers.testloader:
 print("Original model report:")
 print(classification_report(y_test, y_pred))
 logging.info(classification_report(y_test, y_pred))
-
+'''
 # %%
 y_test = []
 y_pred = []
@@ -83,7 +84,7 @@ adversarialloader = DataLoader(ad, batch_size=16, shuffle=True)
 model.train()
 logging.info(f"Started reinforcing on {reinforce.get_time()}")
 reinforced_model = reinforce.k_reinforce(
-    model, mnist_helpers.trainloader, adversarialloader, drop_last=True
+    model, mnist_helpers.trainloader, adversarialloader, drop_last=True, adversarial_weight=5, cuda=True
 )
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 

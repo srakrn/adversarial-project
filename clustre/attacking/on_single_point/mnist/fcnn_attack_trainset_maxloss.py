@@ -8,7 +8,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 
 from clustre.attacking.on_single_point.attack import maxloss
-from helpers.mnist_helpers import mnist_fcnn_model, mnist_trainset
+from clustre.helpers.mnist_helpers import mnist_fcnn_model, mnist_trainset
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
