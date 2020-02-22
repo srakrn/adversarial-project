@@ -26,7 +26,7 @@ OUTPUT_PATH = "perturbs/on_single_point/cifar10/resnet_attack_maxloss_testset.pt
 # %%
 criterion = nn.CrossEntropyLoss()
 logging.info("Started running")
-perturbs = maxloss(cifar10_resnet_model, criterion, testloader, verbose=True)
+perturbs = maxloss(cifar10_resnet_model, criterion, testloader, verbose=True, cuda=True)
 logging.info("Ended running")
 #  %%
 torch.save(perturbs, OUTPUT_PATH)
