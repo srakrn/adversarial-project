@@ -40,7 +40,6 @@ epsilon = 0.2
 # %%
 model.eval()
 # %%
-'''
 y_test = []
 y_pred = []
 for image, label in mnist_helpers.testloader:
@@ -49,11 +48,11 @@ for image, label in mnist_helpers.testloader:
 print("Original model report:")
 print(classification_report(y_test, y_pred))
 logging.info(classification_report(y_test, y_pred))
-'''
 # %%
 y_test = []
 y_pred = []
 for (image, label), perturb in zip(mnist_helpers.testloader, testset_perturbs):
+    perturb = perturb.to("cpu")
     y_test.append(label.item())
     y_pred.append(
         model(image + 0.2 * perturb.reshape(1, 1, 28, 28)).argmax(axis=1).item()
@@ -68,7 +67,7 @@ k = 100
 
 # %%
 train_target, train_perturb, train_km = reinforce.calculate_k_perturbs(
-    model, mnist_helpers.mnist_trainset, trainset_perturbs.detach().numpy(), k
+    model, mnist_helpers.mnist_trainset, trainset_perturbs.cpu().detach().numpy(), k, verbose=True
 )
 
 # %%
