@@ -11,12 +11,10 @@ from sklearn.metrics import classification_report
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
+from clustre.attacking.on_single_point import attack
+from clustre.helpers.helpers import get_time
+
 log = logging.getLogger(__name__)
-
-# %%
-def get_time():
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-
 
 # %%
 def calculate_k_perturbs(
@@ -63,6 +61,8 @@ def calculate_k_perturbs(
     model.eval()
 
     # Load the dataset and begin the clustering process
+    # Observe that we load the full dataset by defining `batch_size`
+    # as the training set's length.
     loader = DataLoader(training_set, batch_size=len(training_set), shuffle=False)
     X, y = next(iter(loader))
     log.info(f"Starting of k-Means at: {get_time()}")
@@ -76,40 +76,25 @@ def calculate_k_perturbs(
 
     # Iterate over clusters in k-Means result
     for i in set(km_clusters):
-        # Obtain the data for only such respective cluster
+        # Find indices of the data containing only data points in such cluster
         idx = np.where(km_clusters == i)[0]
+        # Obtain all data points in the cluster
         data = [training_set[j] for j in idx]
-        trainloader = DataLoader(data, batch_size=len(data), shuffle=False)
+        # Create a trainloader object
+        kloader = DataLoader(data, batch_size=len(data), shuffle=False)
+        Xk, yk = next(iter(kloader))
 
         # Print the attacking detail if verbosity is set to true
         if verbose:
             print(f"Training #{i+1} perturb")
             print(f"\tThis set of perturbation will attack {len(data)} data points.")
 
-        # Obtain the data points to be attacked
-        images, labels = next(iter(trainloader))
-
         if attack_method == "maxloss":
-            perturb = torch.zeros(
-                np.insert(images.shape[1:], 0, 1).tolist(), requires_grad=True
-            )
-            optimizer = optim.Adagrad([perturb], lr=0.03)
-            for e in range(n_epoches):
-                optimizer.zero_grad()
-                output = model(images + perturb)
-                loss = -1 * criterion(output, labels)
-                loss.backward()
-                optimizer.step()
-                perturb.data.clamp(-1, 1)
+            perturbs = attack.maxloss_single_point(model, criterion, Xk, yk)
         elif attack_method == "fgsm":
-            images.requires_grad = True
-            output = model(images)
-            loss = criterion(output, labels)
-            loss.backward()
-
-            perturb = torch.mean(images.grad.data, dim=0).sign()
+            perturbs = attack.fgsm_single_point(model, criterion, Xk, yk)
         k_points.append(idx)
-        k_perturbs.append(perturb.detach())
+        k_perturbs.append(perturbs.detach())
     log.info(f"Completion of calculation: {get_time()}")
     k_perturbs = torch.stack(k_perturbs)
     return [k_points, k_perturbs, km]
@@ -228,7 +213,7 @@ def k_reinforce(
         for i, ((images, labels), (adver_images, adver_labels)) in enumerate(zip(
             trainloader, adversarialloader
         )):
-            print(f"Epoch {e} Minibatch {i}")
+            print(f"Epoch {e+1} Minibatch {i+1}")
             X = torch.cat([images, adver_images], 0)
             y = torch.cat([labels, adver_labels], 0)
             w = torch.tensor(

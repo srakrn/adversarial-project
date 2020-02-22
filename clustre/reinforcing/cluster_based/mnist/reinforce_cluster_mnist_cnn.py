@@ -10,11 +10,8 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-import mnist_helpers  # isort:skip
-import reinforce  # isort:skip
+from clustre.helpers import mnist_helpers
+from clustre.reinforcing.cluster_based import reinforce
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
@@ -28,10 +25,10 @@ model = mnist_helpers.mnist_cnn_model
 
 # %%
 trainset_perturbs = torch.load(
-    "perturbs/on_single_point/mnist/cnn_fgsm_perturbs_trainset.pt"
+    "perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_trainset.pt"
 )
 testset_perturbs = torch.load(
-    "perturbs/on_single_point/mnist/cnn_fgsm_perturbs_testset.pt"
+    "perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_testset.pt"
 )
 
 # %%
@@ -64,11 +61,9 @@ logging.info(classification_report(y_test, y_pred))
 k = 100
 
 # %%
-logging.info(f"Started calculating {k} perturbs")
 train_target, train_perturb, train_km = reinforce.calculate_k_perturbs(
-    model, mnist_helpers.mnist_trainset, trainset_perturbs.detach().numpy(), k
+    model, mnist_helpers.mnist_trainset, trainset_perturbs.detach().numpy(), k, verbose=True
 )
-logging.info(f"Ended calculating {k} perturbs")
 
 # %%
 ad = reinforce.AdversarialDataset(
@@ -77,11 +72,12 @@ ad = reinforce.AdversarialDataset(
 adversarialloader = DataLoader(ad, batch_size=16, shuffle=True)
 
 # %%
-logging.info(f"Started reinforcing")
+trainloader = DataLoader(mnist_helpers.mnist_trainset, batch_size=32, shuffle=False)
+logging.info(f"Started reinforcing on {reinforce.get_time()}")
 reinforced_model = reinforce.k_reinforce(
-    model, mnist_helpers.trainloader, adversarialloader
+    model, trainloader, adversarialloader
 )
-logging.info(f"Ended reinforcing")
+logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 
 # %%
 y_test = []
