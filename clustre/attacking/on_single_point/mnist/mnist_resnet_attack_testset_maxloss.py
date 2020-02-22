@@ -22,7 +22,7 @@ OUTPUT_PATH = "perturbs/on_single_point/mnist/resnet_maxloss_perturbs_testset.pt
 # %%
 criterion = nn.CrossEntropyLoss()
 logging.info("Started running")
-perturbs = maxloss(mnist_resnet_model, criterion, testloader, verbose=True)
+perturbs = maxloss(mnist_resnet_model, criterion, testloader, verbose=True, cuda=True)
 logging.info("Ended running")
 #  %%
 torch.save(perturbs, OUTPUT_PATH)

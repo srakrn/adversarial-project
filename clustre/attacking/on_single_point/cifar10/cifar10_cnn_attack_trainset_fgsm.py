@@ -23,7 +23,7 @@ OUTPUT_PATH = "perturbs/on_single_point/cifar10/cnn_attack_fgsm_trainset.pt"
 # %%
 criterion = nn.CrossEntropyLoss()
 logging.info("Started running")
-perturbs = fgsm(cifar10_cnn_model, criterion, trainloader, verbose=True)
+perturbs = fgsm(cifar10_cnn_model, criterion, trainloader, verbose=True, cuda=True)
 logging.info("Ended running")
 #  %%
 torch.save(perturbs, OUTPUT_PATH)
