@@ -69,7 +69,7 @@ def maxloss(model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=F
 
     if cuda:
         model.to("cpu")
-    perturbs = torch.stack(perturbs)
+    perturbs = torch.cat(perturbs)
     return perturbs
 
 
