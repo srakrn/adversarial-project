@@ -7,7 +7,10 @@ import torch
 from torch import nn, optim
 
 from clustre.attacking.on_single_point.attack import maxloss  # isort:skip
-from helpers.cifar10_helpers import cifar10_resnet_model, cifar10_testset  # isort:skip
+from clustre.helpers.cifar10_helpers import (
+    cifar10_resnet_model,
+    cifar10_testset,
+)  # isort:skip
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
