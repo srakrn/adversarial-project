@@ -24,6 +24,7 @@ def fgsm_reinforce(
     criterion=nn.CrossEntropyLoss,
     optimizer=optim.Adam,
 ):
+    model.to("cuda")
     log.info(f"Training started: {get_time()}")
     criterion = criterion()
     optimizer = optimizer(model.parameters())
@@ -33,8 +34,8 @@ def fgsm_reinforce(
             print(f"Epoch {e} Minibatch {i}")
             perturbs = attack.fgsm_array(model, criterion, images, labels)
             adver_images = images + 0.2 * perturbs
-            X = torch.cat([images, adver_images], 0)
-            y = torch.cat([labels, labels], 0)
+            X = torch.cat([images, adver_images], 0).to("cuda")
+            y = torch.cat([labels, labels], 0).to("cuda")
 
             optimizer.zero_grad()
 
@@ -47,4 +48,5 @@ def fgsm_reinforce(
         else:
             print(f"\tTraining loss: {running_loss/len(trainloader)}")
     log.info(f"Training ended: {get_time()}")
+    model.to("cpu")
     return model
