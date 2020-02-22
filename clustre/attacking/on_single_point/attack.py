@@ -73,7 +73,7 @@ def maxloss(model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=F
     return perturbs
 
 
-def fgsm(model, criterion, loader, verbose=False):
+def fgsm(model, criterion, loader, verbose=False, cuda=False):
     """Generate perturbations on the dataset when given a model and a criterion
 
     Parameters
@@ -96,7 +96,13 @@ def fgsm(model, criterion, loader, verbose=False):
     perturbs = []
     model.eval()
 
+    if cuda:
+        model.to("cuda")
+
     for i, (image, label) in enumerate(loader):
+        if cuda:
+            image = image.to("cuda")
+            label = label.to("cuda")
         if verbose:
             print("Image:", i + 1)
 
@@ -113,11 +119,14 @@ def fgsm(model, criterion, loader, verbose=False):
         perturb = image.grad.data.sign()
         perturbs.append(perturb)
 
-    perturbs = torch.stack(perturbs)
+    perturbs = torch.cat(perturbs)
+
+    if cuda:
+        model.to("cpu")
     return perturbs
 
 
-def fgsm_array(model, criterion, images, labels, verbose=False):
+def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
     """Generate perturbations on the dataset when given a model and a criterion
 
     Parameters
@@ -139,6 +148,9 @@ def fgsm_array(model, criterion, images, labels, verbose=False):
     """
     perturbs = []
     model.eval()
+
+    if cuda:
+        model.to("cuda")
 
     for i, (image, label) in enumerate(zip(images, labels)):
         image.unsqueeze_(0)
