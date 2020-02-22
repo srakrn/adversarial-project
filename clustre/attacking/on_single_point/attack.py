@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 
-def maxloss(model, criterion, dataset, epsilon=1, lr=0.1, n_epoches=10, verbose=False):
+def maxloss(model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=False):
     """Generate perturbations on the dataset when given a model and a criterion
     using a maximised loss method
 
@@ -17,8 +17,8 @@ def maxloss(model, criterion, dataset, epsilon=1, lr=0.1, n_epoches=10, verbose=
         A criterion function
     optimizer: torch.optim
         An optimizer class object used to optimize the maximised loss
-    dataset: torchvision.datasets
-        torchvision-like dataset
+    loader: DataLoader
+        A DataLoader instance with batch_size=1
     epsilon: float
         Maximum value to clamp for the perturbation
     lr: float
@@ -34,7 +34,6 @@ def maxloss(model, criterion, dataset, epsilon=1, lr=0.1, n_epoches=10, verbose=
         A tensor containing perturbations with the same length of the
         received dataset.
     """
-    loader = DataLoader(dataset, batch_size=1, shuffle=False)
     perturbs = []
     model.eval()
 
@@ -64,7 +63,7 @@ def maxloss(model, criterion, dataset, epsilon=1, lr=0.1, n_epoches=10, verbose=
     return perturbs
 
 
-def fgsm(model, criterion, dataset, verbose=False):
+def fgsm(model, criterion, loader, verbose=False):
     """Generate perturbations on the dataset when given a model and a criterion
 
     Parameters
@@ -73,8 +72,8 @@ def fgsm(model, criterion, dataset, verbose=False):
         A model to attack
     criterion: function
         A criterion function
-    dataset: torchvision.datasets
-        torchvision-like dataset
+    loader: DataLoader
+        A DataLoader instance with batch_size=1
     verbose: bool
         Verbosity setting
 
@@ -84,8 +83,6 @@ def fgsm(model, criterion, dataset, verbose=False):
         A tensor containing perturbations with the same length of the
         received dataset.
     """
-
-    loader = DataLoader(dataset, batch_size=1, shuffle=False)
     perturbs = []
     model.eval()
 
@@ -108,3 +105,44 @@ def fgsm(model, criterion, dataset, verbose=False):
 
     perturbs = torch.stack(perturbs)
     return perturbs
+
+
+def fgsm_array(model, criterion, images, labels, verbose=False):
+    """Generate perturbations on the dataset when given a model and a criterion
+
+    Parameters
+    ----------
+    model: nn.module
+        A model to attack
+    criterion: function
+        A criterion function
+    loader: DataLoader
+        A DataLoader instance with batch_size=1
+    verbose: bool
+        Verbosity setting
+
+    Returns
+    -------
+    torch.tensor
+        A tensor containing perturbations with the same length of the
+        received dataset.
+    """
+    perturbs = []
+    model.eval()
+
+    for i, (image, label) in enumerate(zip(images, labels)):
+        image.unsqueeze_(0)
+        label.unsqueeze_(0)
+
+        if verbose:
+            print("Image:", i + 1)
+
+        image.requires_grad = True
+
+        output = model(image)
+        loss = criterion(output, label)
+        loss.backward()
+
+        perturb = image.grad.data.sign()[0]
+        perturbs.append(perturb)
+    return torch.stack(perturbs)
