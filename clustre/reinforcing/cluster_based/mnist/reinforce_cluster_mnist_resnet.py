@@ -78,9 +78,10 @@ adversarialloader = DataLoader(ad, batch_size=16, shuffle=True)
 
 # %%
 model.train()
+trainloader = DataLoader(mnist_helpers.mnist_trainset, batch_size=32, shuffle=False)
 logging.info(f"Started reinforcing on {reinforce.get_time()}")
 reinforced_model = reinforce.k_reinforce(
-    model, mnist_helpers.trainloader, adversarialloader, drop_last=True, adversarial_weight=5, cuda=True
+    model, trainloader, adversarialloader, drop_last=True, adversarial_weight=5, cuda=True
 )
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 
@@ -100,6 +101,7 @@ logging.info(classification_report(y_test, y_pred))
 y_test = []
 y_pred = []
 for (image, label), perturb in zip(mnist_helpers.testloader, testset_perturbs):
+    perturb = perturb.to("cpu")
     y_test.append(label.item())
     y_pred.append(
         model(image + 0.2 * perturb.reshape(1, 1, 28, 28)).argmax(axis=1).item()

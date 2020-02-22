@@ -27,7 +27,6 @@ testset_perturbs = torch.load(
 )
 
 trainloader = DataLoader(mnist_helpers.mnist_trainset, batch_size=32)
-
 model = mnist_helpers.mnist_resnet_model
 model.eval()
 
@@ -48,6 +47,7 @@ logging.info(classification_report(y_test, y_pred))
 y_test = []
 y_pred = []
 for (image, label), perturb in zip(mnist_helpers.testloader, testset_perturbs):
+    perturb = perturb.to("cpu")
     y_test.append(label.item())
     y_pred.append(
         model(image + 0.2 * perturb.reshape(1, 1, 28, 28)).argmax(axis=1).item()
@@ -77,6 +77,7 @@ logging.info(classification_report(y_test, y_pred))
 y_test = []
 y_pred = []
 for (image, label), perturb in zip(mnist_helpers.testloader, testset_perturbs):
+    perturb = perturb.to("cpu")
     y_test.append(label.item())
     y_pred.append(
         model(image + 0.2 * perturb.reshape(1, 1, 28, 28)).argmax(axis=1).item()
