@@ -21,7 +21,7 @@ OUTPUT_PATH = "perturbs/on_single_point/mnist/cnn_fgsm_perturbs_testset.pt"
 # %%
 criterion = nn.CrossEntropyLoss()
 logging.info("Started running")
-perturbs = fgsm(mnist_cnn_model, criterion, testloader, verbose=True)
+perturbs = fgsm(mnist_cnn_model, criterion, testloader, verbose=True, cuda=True)
 logging.info("Ended running")
 #  %%
 torch.save(perturbs, OUTPUT_PATH)
