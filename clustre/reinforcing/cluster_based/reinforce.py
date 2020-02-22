@@ -191,15 +191,19 @@ def k_reinforce(
     criterion=nn.CrossEntropyLoss,
     optimizer=optim.Adam,
     drop_last=False,
+    cuda=False
 ):
+    if cuda:
+        model = model.to("cuda")
     log.info(f"Training started: {get_time()}")
     criterion = criterion(reduction="none")
     optimizer = optimizer(model.parameters())
     for e in range(n_epoches):
         running_loss = 0
-        for (images, labels), (adver_images, adver_labels) in zip(
+        for i, ((images, labels), (adver_images, adver_labels)) in enumerate(zip(
             trainloader, adversarialloader
-        ):
+        )):
+            print(f"Epoch {f} Minibatch {f}")
             X = torch.cat([images, adver_images], 0)
             y = torch.cat([labels, adver_labels], 0)
             w = torch.tensor(
@@ -212,6 +216,10 @@ def k_reinforce(
                 not drop_last
                 or len(w) == trainloader.batch_size + adversarialloader.batch_size
             ):
+                if cuda:
+                    X = X.to("cuda")
+                    y = y.to("cuda")
+                    w = w.to("cuda")
                 optimizer.zero_grad()
 
                 output = F.log_softmax(model(X), dim=1)
@@ -223,4 +231,6 @@ def k_reinforce(
         else:
             print(f"\tTraining loss: {running_loss/len(trainloader)}")
     log.info(f"Training ended: {get_time()}")
+    if cuda:
+        model = model.to("cpu")
     return model
