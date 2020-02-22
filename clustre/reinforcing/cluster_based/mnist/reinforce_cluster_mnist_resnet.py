@@ -10,11 +10,8 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-import mnist_helpers  # isort:skip
-import reinforce  # isort:skip
+from clustre.helpers import mnist_helpers
+from clustre.reinforcing.cluster_based import reinforce
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
