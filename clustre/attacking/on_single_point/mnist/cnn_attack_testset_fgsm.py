@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 
 from clustre.attacking.on_single_point.attack import fgsm
-from helpers.mnist_helpers import mnist_cnn_model, mnist_testset
+from clustre.helpers.mnist_helpers import mnist_cnn_model, mnist_testset
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",

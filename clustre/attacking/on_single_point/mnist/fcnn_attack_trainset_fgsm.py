@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 
 from clustre.attacking.on_single_point.attack import fgsm  # isort:skip
-from helpers.mnist_helpers import mnist_fcnn_model, mnist_trainset  # isort:skip
+from clustre.helpers.mnist_helpers import mnist_fcnn_model, mnist_trainset  # isort:skip
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
