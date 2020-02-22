@@ -6,11 +6,12 @@ import sys
 import torch
 from torch import nn, optim
 
-from clustre.attacking.on_single_point.attack import fgsm  # isort:skip
-from clustre.helpers.cifar10_helpers import (
+from clustre.helpers.cifar10_helpers import (  # isort:skip
     cifar10_resnet_model,
-    cifar10_trainset,
-)  # isort:skip
+    trainloader,
+)
+
+from clustre.attacking.on_single_point.attack import fgsm  # isort:skip
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",

@@ -7,7 +7,9 @@ import torch
 from torch import nn, optim
 
 from clustre.helpers.cifar10_helpers import (  # isort:skip
-    cifar10_resnet_model, cifar10_testset)
+    cifar10_resnet_model,
+    trainloader,
+)
 
 from clustre.attacking.on_single_point.attack import maxloss  # isort:skip
 
