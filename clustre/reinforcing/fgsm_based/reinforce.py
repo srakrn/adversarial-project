@@ -32,6 +32,8 @@ def fgsm_reinforce(
         running_loss = 0
         for i, (images, labels) in enumerate(trainloader):
             print(f"Epoch {e} Minibatch {i}")
+            images = images.to("cuda")
+            labels = labels.to("cuda")
             perturbs = attack.fgsm_array(model, criterion, images, labels)
             adver_images = images + 0.2 * perturbs
             X = torch.cat([images, adver_images], 0).to("cuda")
