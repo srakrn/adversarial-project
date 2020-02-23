@@ -6,7 +6,14 @@ from torchvision import datasets, transforms
 
 
 def pgd(
-    model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=False, cuda=False
+    model,
+    criterion,
+    loader,
+    epsilon=0.3,
+    lr=0.01,
+    n_epoches=40,
+    verbose=False,
+    cuda=False,
 ):
     """Generate perturbations on the dataset when given a model and a criterion
     using a maximised loss method
@@ -62,9 +69,9 @@ def pgd_array(
     criterion,
     images,
     labels,
-    epsilon=1,
-    lr=0.1,
-    n_epoches=10,
+    epsilon=0.3,
+    lr=0.01,
+    n_epoches=40,
     verbose=False,
     cuda=False,
 ):
@@ -127,9 +134,9 @@ def pgd_single_point(
     criterion,
     images,
     labels,
-    epsilon=1,
-    lr=0.1,
-    n_epoches=10,
+    epsilon=0.3,
+    lr=0.01,
+    n_epoches=40,
     verbose=False,
     cuda=False,
 ):
@@ -189,8 +196,8 @@ def pgd_single_point(
         optimizer.step()
         running_loss += loss.item()
         perturb.data.clamp_(-epsilon, epsilon)
-        if verbose:
-            print("\tNoise loss:", -1 * running_loss)
+    if verbose:
+        print("\tNoise loss:", -1 * running_loss)
     return perturb.cpu()
 
 
@@ -226,13 +233,7 @@ def fgsm(model, criterion, loader, verbose=False, cuda=False):
         if verbose:
             print(f"Image {i+1}")
 
-        perturb = fgsm_single_point(
-            model,
-            criterion,
-            image,
-            label,
-            cuda=cuda,
-        )
+        perturb = fgsm_single_point(model, criterion, image, label, cuda=cuda,)
         perturbs.append(perturb)
 
     perturbs = torch.stack(perturbs)
@@ -270,13 +271,7 @@ def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
         image.unsqeeze_(0)
         label = torch.tensor([label])
 
-        perturb = fgsm_single_point(
-            model,
-            criterion,
-            image,
-            label,
-            cuda=cuda,
-        )
+        perturb = fgsm_single_point(model, criterion, image, label, cuda=cuda,)
         perturbs.append(perturb)
 
     perturbs = torch.stack(perturbs)
