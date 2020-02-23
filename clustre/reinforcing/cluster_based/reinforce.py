@@ -131,7 +131,7 @@ class AdversarialDataset(Dataset):
     Adversarial dataset to be feeded to the model
     """
 
-    def __init__(self, data, targets, perturbs, density=0.2, cuda=False):
+    def __init__(self, data, targets, perturbs, density=0.3, cuda=False):
         """Initialize function for the dataset
 
         Parameters
