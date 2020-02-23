@@ -5,7 +5,7 @@ from sklearn.metrics import classification_report
 log = logging.getLogger(__name__)
 
 
-def accuracy_unattacked(model, testloader):
+def accuracy_unattacked(model, testloader, desc=None):
     model.eval()
     y_test = []
     y_pred = []
@@ -16,12 +16,18 @@ def accuracy_unattacked(model, testloader):
         model.to("cuda")
         y_test.append(label.item())
         y_pred.append(model(image).argmax(axis=1).item())
-    print("Original model report:")
-    print(classification_report(y_test, y_pred))
-    logging.info(classification_report(y_test, y_pred))
+
+    clf_report = classification_report(y_test, y_pred)
+    if desc:
+        print(desc)
+        print(clf_report)
+        logging.info(desc + '\n' + clf_report)
+    else:
+        print(clf_report)
+        logging.info(clf_report)
 
 
-def accuracy_attacked(model, testloader, testset_perturbs, density=0.2):
+def accuracy_attacked(model, testloader, testset_perturbs, density=0.2, desc=None):
     model.eval()
     y_test = []
     y_pred = []
@@ -38,6 +44,12 @@ def accuracy_attacked(model, testloader, testset_perturbs, density=0.2):
             .argmax(axis=1)
             .item()
         )
-    print("Adversarial on original model report:")
-    print(classification_report(y_test, y_pred))
-    logging.info(classification_report(y_test, y_pred))
+
+    clf_report = classification_report(y_test, y_pred)
+    if desc:
+        print(desc)
+        print(clf_report)
+        logging.info(desc + '\n' + clf_report)
+    else:
+        print(clf_report)
+        logging.info(clf_report)
