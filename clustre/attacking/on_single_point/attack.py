@@ -184,7 +184,7 @@ def pgd_single_point(
         perturb = torch.zeros(images.shape[1:], requires_grad=True)
 
     # Using Adam optimiser
-    optimizer = optim.SGD([perturb], lr=lr)
+    optimizer = optim.Adam([perturb], lr=lr)
 
     for e in range(n_epoches):
         running_loss = 0
