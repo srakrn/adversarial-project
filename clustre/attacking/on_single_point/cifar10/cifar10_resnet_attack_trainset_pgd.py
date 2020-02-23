@@ -8,10 +8,10 @@ from torch import nn, optim
 
 from clustre.helpers.cifar10_helpers import (  # isort:skip
     cifar10_resnet_model,
-    testloader,
+    trainloader,
 )
 
-from clustre.attacking.on_single_point.attack import maxloss  # isort:skip
+from clustre.attacking.on_single_point.attack import pgd  # isort:skip
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
@@ -21,12 +21,12 @@ logging.basicConfig(
 )
 
 # %%
-OUTPUT_PATH = "perturbs/on_single_point/cifar10/resnet_attack_maxloss_testset.pt"
+OUTPUT_PATH = "perturbs/on_single_point/cifar10/resnet_attack_pgd_testset.pt"
 
 # %%
 criterion = nn.CrossEntropyLoss()
 logging.info("Started running")
-perturbs = maxloss(cifar10_resnet_model, criterion, testloader, verbose=True, cuda=True)
+perturbs = pgd(cifar10_resnet_model, criterion, trainloader, verbose=True, cuda=True)
 logging.info("Ended running")
 #  %%
 torch.save(perturbs, OUTPUT_PATH)

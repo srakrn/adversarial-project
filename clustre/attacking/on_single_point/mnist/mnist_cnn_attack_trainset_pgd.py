@@ -6,7 +6,7 @@ import sys
 import torch
 from torch import nn, optim
 
-from clustre.attacking.on_single_point.attack import maxloss  # isort:skip
+from clustre.attacking.on_single_point.attack import pgd  # isort:skip
 from clustre.helpers.mnist_helpers import mnist_cnn_model, trainloader  # isort:skip
 
 logging.basicConfig(
@@ -16,12 +16,12 @@ logging.basicConfig(
     format="%(process)d-%(levelname)s-%(asctime)s-%(message)s",
 )
 # %%
-OUTPUT_PATH = "perturbs/on_single_point/mnist/cnn_maxloss_perturbs_trainset.pt"
+OUTPUT_PATH = "perturbs/on_single_point/mnist/cnn_pgd_perturbs_trainset.pt"
 
 # %%
 criterion = nn.CrossEntropyLoss()
 logging.info("Started running")
-perturbs = maxloss(mnist_cnn_model, criterion, trainloader, verbose=True, cuda=True)
+perturbs = pgd(mnist_cnn_model, criterion, trainloader, verbose=True, cuda=True)
 logging.info("Ended running")
 #  %%
 torch.save(perturbs, OUTPUT_PATH)
