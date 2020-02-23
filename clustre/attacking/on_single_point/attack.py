@@ -35,49 +35,25 @@ def pgd(
         received dataset.
     """
     perturbs = []
-    model.eval()
-
-    if cuda:
-        model = model.to("cuda")
-    else:
-        model = model.to("cpu")
 
     for i, (image, label) in enumerate(loader):
         if verbose:
             print("Image:", i + 1)
 
-        if cuda:
-            image = image.to("cuda")
-            label = label.to("cuda")
-        else:
-            image = image.to("cpu")
-            label = label.to("cpu")
-
-        #  Create a random array of perturbation
-        if cuda:
-            perturb = torch.zeros(image.shape, device="cuda", requires_grad=True)
-        else:
-            perturb = torch.zeros(image.shape, requires_grad=True)
-
-        optimizer = optim.Adam([perturb], lr=lr)
-
-        for e in range(n_epoches):
-            running_loss = 0
-            optimizer.zero_grad()
-
-            output = model(image + perturb)
-            loss = -criterion(output, label)
-            loss.backward()
-            optimizer.step()
-            running_loss += loss.item()
-            perturb.data.clamp_(-epsilon, epsilon)
-        if verbose:
-            print("\tNoise loss:", -1 * loss.item())
+        perturb = pgd_single_point(
+            model,
+            criterion,
+            image,
+            label,
+            epsilon=epsilon,
+            lr=lr,
+            n_epoches=n_epoches,
+            verbose=verbose,
+            cuda=cuda,
+        )
         perturbs.append(perturb)
 
-    if cuda:
-        model.to("cpu")
-    perturbs = torch.cat(perturbs)
+    perturbs = torch.stack(perturbs)
     return perturbs.cpu()
 
 
@@ -121,12 +97,6 @@ def pgd_array(
         received dataset.
     """
     perturbs = []
-    model.eval()
-
-    if cuda:
-        model = model.to("cuda")
-    else:
-        model = model.to("cpu")
 
     for i, (image, label) in zip(images, labels):
         if verbose:
@@ -134,39 +104,21 @@ def pgd_array(
 
         image.unsqeeze_(0)
         label = torch.tensor([label])
-        
-        if cuda:
-            image = image.to("cuda")
-            label = label.to("cuda")
-        else:
-            image = image.to("cpu")
-            label = label.to("cpu")
 
-        #  Create a random array of perturbation
-        if cuda:
-            perturb = torch.zeros(image.shape, device="cuda", requires_grad=True)
-        else:
-            perturb = torch.zeros(image.shape, requires_grad=True)
-
-        optimizer = optim.Adam([perturb], lr=lr)
-
-        for e in range(n_epoches):
-            running_loss = 0
-            optimizer.zero_grad()
-
-            output = model(image + perturb)
-            loss = -criterion(output, label)
-            loss.backward()
-            optimizer.step()
-            running_loss += loss.item()
-            perturb.data.clamp_(-epsilon, epsilon)
-        if verbose:
-            print("\tNoise loss:", -1 * loss.item())
+        perturb = pgd_single_point(
+            model,
+            criterion,
+            image,
+            label,
+            epsilon=epsilon,
+            lr=lr,
+            n_epoches=n_epoches,
+            verbose=verbose,
+            cuda=cuda,
+        )
         perturbs.append(perturb)
 
-    if cuda:
-        model.to("cpu")
-    perturbs = torch.cat(perturbs)
+    perturbs = torch.stack(perturbs)
     return perturbs.cpu()
 
 
@@ -271,32 +223,19 @@ def fgsm(model, criterion, loader, verbose=False, cuda=False):
         model.to("cpu")
 
     for i, (image, label) in enumerate(loader):
-        if cuda:
-            image = image.to("cuda")
-            label = label.to("cuda")
-        else:
-            image = image.to("cpu")
-            label = label.to("cpu")
         if verbose:
-            print("Image:", i + 1)
+            print(f"Image {i+1}")
 
-        #  Epsilon defines the maximum density (-e, e). It should be
-        #  in the range of the training set's scaled value.
-        epsilon = 1
-
-        image.requires_grad = True
-
-        output = model(image)
-        loss = criterion(output, label)
-        loss.backward()
-
-        perturb = image.grad.data.sign()
+        perturb = fgsm_single_point(
+            model,
+            criterion,
+            image,
+            label,
+            cuda=cuda,
+        )
         perturbs.append(perturb)
 
-    perturbs = torch.cat(perturbs)
-
-    if cuda:
-        model.to("cpu")
+    perturbs = torch.stack(perturbs)
     return perturbs.cpu()
 
 
@@ -323,36 +262,25 @@ def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
         received dataset.
     """
     perturbs = []
-    model.eval()
-
-    if cuda:
-        model.to("cuda")
-    else:
-        model.to("cpu")
 
     for i, (image, label) in enumerate(zip(images, labels)):
-        if cuda:
-            image = image.to("cuda")
-            label = label.to("cuda")
-        else:
-            image = image.to("cpu")
-            label = label.to("cpu")
-
-        image.unsqueeze_(0)
-        label.unsqueeze_(0)
-
         if verbose:
-            print("Image:", i + 1)
+            print(f"Image {i+1}")
 
-        image.requires_grad = True
+        image.unsqeeze_(0)
+        label = torch.tensor([label])
 
-        output = model(image)
-        loss = criterion(output, label)
-        loss.backward()
-
-        perturb = image.grad.data.sign()
+        perturb = fgsm_single_point(
+            model,
+            criterion,
+            image,
+            label,
+            cuda=cuda,
+        )
         perturbs.append(perturb)
-    return torch.cat(perturbs).cpu()
+
+    perturbs = torch.stack(perturbs)
+    return perturbs.cpu()
 
 
 def fgsm_single_point(model, criterion, images, labels, cuda=False):
