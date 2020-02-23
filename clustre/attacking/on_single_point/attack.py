@@ -106,7 +106,7 @@ def pgd_array(
         if verbose:
             print("Image:", i + 1)
 
-        image.unsqeeze_(0)
+        image.unsqueeze_(0)
         label = torch.tensor([label])
 
         perturb = pgd_single_point(
@@ -255,7 +255,7 @@ def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
         if verbose:
             print(f"Image {i+1}")
 
-        image.unsqeeze_(0)
+        image.unsqueeze_(0)
         label = torch.tensor([label])
 
         perturb = fgsm_single_point(model, criterion, image, label, cuda=cuda,)
