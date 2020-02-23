@@ -135,7 +135,6 @@ def pgd_single_point(
     images,
     labels,
     epsilon=0.3,
-    lr=0.01,
     n_epoches=40,
     verbose=False,
     cuda=False,
@@ -154,8 +153,6 @@ def pgd_single_point(
         Labels for the images
     epsilon: float
         Maximum value to clamp for the perturbation
-    lr: float
-        Learning rate for the perturbation optimizer
     n_epohes: int
         Epoches to maximise the loss
     verbose: bool
