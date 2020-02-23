@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 
-def maxloss(
+def pgd(
     model, criterion, loader, epsilon=1, lr=0.1, n_epoches=10, verbose=False, cuda=False
 ):
     """Generate perturbations on the dataset when given a model and a criterion
@@ -75,7 +75,7 @@ def maxloss(
     return perturbs
 
 
-def maxloss_array(
+def pgd_array(
     model,
     criterion,
     images,
@@ -156,7 +156,7 @@ def maxloss_array(
     return perturbs
 
 
-def maxloss_single_point(
+def pgd_single_point(
     model,
     criterion,
     images,

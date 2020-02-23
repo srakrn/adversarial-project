@@ -7,7 +7,7 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader
 
-from clustre.attacking.on_single_point.attack import maxloss
+from clustre.attacking.on_single_point.attack import pgd
 from clustre.helpers.mnist_helpers import mnist_fcnn_model, trainloader
 
 logging.basicConfig(
@@ -18,12 +18,12 @@ logging.basicConfig(
 )
 
 # %%
-OUTPUT_PATH = "perturbs/on_single_point/mnist/fcnn_maxloss_perturbs_trainset.pt"
+OUTPUT_PATH = "perturbs/on_single_point/mnist/fcnn_pgd_perturbs_trainset.pt"
 
 # %%
 criterion = nn.CrossEntropyLoss()
 logging.info("Started running")
-perturbs = maxloss(mnist_fcnn_model, criterion, trainloader, verbose=True, cuda=True)
+perturbs = pgd(mnist_fcnn_model, criterion, trainloader, verbose=True, cuda=True)
 logging.info("Ended running")
 #  %%
 # torch.save(perturbs, OUTPUT_PATH)
