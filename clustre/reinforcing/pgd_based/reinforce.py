@@ -17,11 +17,12 @@ from clustre.helpers.helpers import get_time
 log = logging.getLogger(__name__)
 
 
-def fgsm_reinforce(
+def pgd_reinforce(
     model,
     trainloader,
     n_epoches=10,
     epsilon=0.2,
+    pgd_epoches=10,
     criterion=nn.CrossEntropyLoss,
     optimizer=optim.Adam,
     cuda=False,
@@ -41,7 +42,9 @@ def fgsm_reinforce(
                 images = images.to("cuda")
                 labels = labels.to("cuda")
 
-            perturbs = attack.fgsm_array(model, criterion, images, labels, cuda=cuda)
+            perturbs = attack.pgd_array(
+                model, criterion, images, labels, n_epoches=pgd_epoches, cuda=cuda
+            )
             if cuda and not perturbs.is_cuda:
                 perturbs = perturbs.to("cuda")
             adver_images = images + epsilon * perturbs

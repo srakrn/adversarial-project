@@ -15,8 +15,8 @@ from clustre.reinforcing import helpers as reinforce_helpers
 from clustre.reinforcing.fgsm_based import reinforce
 
 parser = argparse.ArgumentParser()
-parser = argparse.ArgumentParser(description="Reinforce using cluster-based method")
-parser.add_argument("--eps", type=float, default=0.2, help="Epsilon")
+parser = argparse.ArgumentParser(description='Reinforce using cluster-based method')
+parser.add_argument('--eps', type=float, default=0.2, help='Epsilon')
 
 # PARAMETERS
 args = parser.parse_args()
@@ -31,7 +31,7 @@ logging.basicConfig(
 )
 
 # %%
-model = mnist_helpers.mnist_fcnn_model
+model = mnist_helpers.mnist_cnn_model
 
 # %%
 testset_fgsm_perturbs = torch.load(
@@ -61,18 +61,10 @@ reinforced_model = reinforce.fgsm_reinforce(model, trainloader, cuda=True)
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 
 # %%
-reinforce_helpers.accuracy_unattacked(
-    reinforced_model, mnist_helpers.testloader, desc="Accuracy"
+reinforce_helpers.accuracy_unattacked(reinforced_model, mnist_helpers.testloader, desc="Accuracy")
+reinforce_helpers.accuracy_attacked(
+    reinforced_model, mnist_helpers.testloader, testset_pgd_perturbs, desc="PGD accuracy"
 )
 reinforce_helpers.accuracy_attacked(
-    reinforced_model,
-    mnist_helpers.testloader,
-    testset_pgd_perturbs,
-    desc="PGD accuracy",
-)
-reinforce_helpers.accuracy_attacked(
-    reinforced_model,
-    mnist_helpers.testloader,
-    testset_fgsm_perturbs,
-    desc="FGSM accuracy",
+    reinforced_model, mnist_helpers.testloader, testset_fgsm_perturbs, desc="FGSM accuracy"
 )
