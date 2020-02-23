@@ -41,16 +41,16 @@ model = mnist_helpers.mnist_resnet_model
 
 # %%
 trainset_fgsm_perturbs = torch.load(
-    "perturbs/on_single_point/mnist/fresnet_fgsm_perturbs_trainset.pt"
+    "perturbs/on_single_point/mnist/resnet_fgsm_perturbs_trainset.pt"
 )
 testset_fgsm_perturbs = torch.load(
-    "perturbs/on_single_point/mnist/fresnet_fgsm_perturbs_testset.pt"
+    "perturbs/on_single_point/mnist/resnet_fgsm_perturbs_testset.pt"
 )
 trainset_pgd_perturbs = torch.load(
-    "perturbs/on_single_point/mnist/fresnet_pgd_perturbs_trainset.pt"
+    "perturbs/on_single_point/mnist/resnet_pgd_perturbs_trainset.pt"
 )
 testset_pgd_perturbs = torch.load(
-    "perturbs/on_single_point/mnist/fresnet_pgd_perturbs_testset.pt"
+    "perturbs/on_single_point/mnist/resnet_pgd_perturbs_testset.pt"
 )
 
 # %%
