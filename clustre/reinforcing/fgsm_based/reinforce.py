@@ -27,6 +27,8 @@ def fgsm_reinforce(
 ):
     if cuda:
         model.to("cuda")
+    else:
+        model.to("cpu")
     log.info(f"Training started: {get_time()}")
     criterion = criterion()
     optimizer = optimizer(model.parameters())
@@ -56,6 +58,4 @@ def fgsm_reinforce(
         else:
             print(f"\tTraining loss: {running_loss/len(trainloader)}")
     log.info(f"Training ended: {get_time()}")
-    if cuda:
-        model.to("cpu")
     return model
