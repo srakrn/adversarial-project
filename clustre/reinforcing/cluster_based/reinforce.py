@@ -24,7 +24,6 @@ def calculate_k_perturbs(
     k,
     criterion=nn.CrossEntropyLoss(),
     attack_method="fgsm",
-    lr=0.1,
     n_epoches=10,
     verbose=0,
     cuda=False
@@ -45,8 +44,6 @@ def calculate_k_perturbs(
         A criterion function
     attack_method: "fgsm" or "maxloss"
         A method used to calculate perturbations
-    lr: float
-        Learning rate for the perturbation optimizer, to be used by the "maxloss" algorithm
     n_epoches: int
         If attack_method is "maxloss", determine the epoches used to maximise the loss
     verbose: int
