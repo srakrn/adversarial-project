@@ -183,21 +183,15 @@ def pgd_single_point(
     else:
         perturb = torch.zeros(images.shape[1:], requires_grad=True)
 
-    # Using Adam optimiser
-    optimizer = optim.Adam([perturb], lr=lr)
+    images.requires_grad = True
 
     for e in range(n_epoches):
-        running_loss = 0
-        optimizer.zero_grad()
-
-        output = model(images + perturb)
-        loss = -criterion(output, labels)
+        output = model(torch.clamp(images + perturb, -1, 1))
+        loss = criterion(output, labels)
         loss.backward()
-        optimizer.step()
-        running_loss += loss.item()
+
+        perturb = epsilon * images.grad.mean(dim=0).sign()
         perturb.data.clamp_(-epsilon, epsilon)
-    if verbose:
-        print("\tNoise loss:", -1 * running_loss)
     return perturb.cpu() / epsilon
 
 
