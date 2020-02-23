@@ -1,19 +1,27 @@
 # %%
+import argparse
 import logging
 import os
 import sys
 
 import torch
 import torch.nn.functional as F
-from sklearn.metrics import classification_report
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
-from clustre.helpers import helpers, mnist_helpers
+from clustre.helpers import mnist_helpers
+from clustre.reinforcing import helpers as reinforce_helpers
 from clustre.reinforcing.fgsm_based import reinforce
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
+parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description='Reinforce using cluster-based method')
+parser.add_argument('--eps', type=float, default=0.2, help='Epsilon')
+
+# PARAMETERS
+args = parser.parse_args()
+
+EPSILON = args.eps
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
@@ -22,61 +30,41 @@ logging.basicConfig(
     format="%(process)d-%(levelname)s-%(asctime)s-%(message)s",
 )
 
-testset_perturbs = torch.load(
-    "perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_testset.pt"
-)
-
-trainloader = DataLoader(mnist_helpers.mnist_trainset, batch_size=32)
+# %%
 model = mnist_helpers.mnist_cnn_model
 
 # %%
-epsilon = 0.2
+testset_fgsm_perturbs = torch.load(
+    "perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_testset.pt"
+)
+testset_pgd_perturbs = torch.load(
+    "perturbs/on_single_point/mnist/fcnn_pgd_perturbs_testset.pt"
+)
 
 # %%
-y_test = []
-y_pred = []
-for image, label in mnist_helpers.testloader:
-    y_test.append(label.item())
-    y_pred.append(model(image).argmax(axis=1).item())
-print("Original model report:")
-print(classification_report(y_test, y_pred))
-logging.info(classification_report(y_test, y_pred))
+logging.info(f"EPSILON = {EPSILON}")
 
 # %%
-y_test = []
-y_pred = []
-for (image, label), perturb in zip(mnist_helpers.testloader, testset_perturbs):
-    y_test.append(label.item())
-    y_pred.append(
-        model(image + 0.2 * perturb.reshape(1, 1, 28, 28)).argmax(axis=1).item()
-    )
-print("Adversarial on original model report:")
-print(classification_report(y_test, y_pred))
-logging.info(classification_report(y_test, y_pred))
+reinforce_helpers.accuracy_unattacked(model, mnist_helpers.testloader, desc="Accuracy")
+reinforce_helpers.accuracy_attacked(
+    model, mnist_helpers.testloader, testset_pgd_perturbs, desc="PGD accuracy"
+)
+reinforce_helpers.accuracy_attacked(
+    model, mnist_helpers.testloader, testset_fgsm_perturbs, desc="FGSM accuracy"
+)
+
 # %%
+trainloader = DataLoader(mnist_helpers.mnist_trainset, batch_size=32)
+
 logging.info(f"Started reinforcing on {reinforce.get_time()}")
-reinforced_model = reinforce.fgsm_reinforce(model, trainloader)
+reinforced_model = reinforce.fgsm_reinforce(model, trainloader, cuda=True)
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 
 # %%
-y_test = []
-y_pred = []
-for image, label in mnist_helpers.testloader:
-    y_test.append(label.item())
-    y_pred.append(model(image).argmax(axis=1).item())
-print("Reinforced model report:")
-print(classification_report(y_test, y_pred))
-logging.info(classification_report(y_test, y_pred))
-
-
-# %%
-y_test = []
-y_pred = []
-for (image, label), perturb in zip(mnist_helpers.testloader, testset_perturbs):
-    y_test.append(label.item())
-    y_pred.append(
-        model(image + 0.2 * perturb.reshape(1, 1, 28, 28)).argmax(axis=1).item()
-    )
-print("Adversarial on reinforced model report:")
-print(classification_report(y_test, y_pred))
-logging.info(classification_report(y_test, y_pred))
+reinforce_helpers.accuracy_unattacked(reinforced_model, mnist_helpers.testloader, desc="Accuracy")
+reinforce_helpers.accuracy_attacked(
+    reinforced_model, mnist_helpers.testloader, testset_pgd_perturbs, desc="PGD accuracy"
+)
+reinforce_helpers.accuracy_attacked(
+    reinforced_model, mnist_helpers.testloader, testset_fgsm_perturbs, desc="FGSM accuracy"
+)
