@@ -18,7 +18,6 @@ parser = argparse.ArgumentParser()
 parser = argparse.ArgumentParser(description='Reinforce using cluster-based method')
 parser.add_argument('--eps', type=float, default=0.2, help='Epsilon')
 parser.add_argument('--nclus', type=int, default=100, help='Amount of clusters')
-parser.add_argument('--eval', type=str, default="pgd", help='Input dir for videos')
 parser.add_argument('--clus', type=str, default="pgd", help='Output dir for image')
 parser.add_argument('--learn', type=str, default="pgd", help='Output dir for image')
 
@@ -27,10 +26,8 @@ args = parser.parse_args()
 
 EPSILON = args.eps
 N_CLUSTERS = args.nclus
-EVALUATION_PERTURB = args.eval
 CLUSTERING_PERTURB = args.clus
 LEARNING_PERTURB = args.learn
-
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
@@ -59,14 +56,8 @@ testset_pgd_perturbs = torch.load(
 # %%
 logging.info(f"EPSILON = {EPSILON}")
 logging.info(f"N_CLUSTERS = {N_CLUSTERS}")
-logging.info(f"EVALUATION_PERTURB = {EVALUATION_PERTURB}")
 logging.info(f"CLUSTERING_PERTURB = {CLUSTERING_PERTURB}")
 logging.info(f"LEARNING_PERTURB = {LEARNING_PERTURB}")
-
-if EVALUATION_PERTURB == "pgd":
-    evaluation_perturbs = testset_pgd_perturbs
-elif EVALUATION_PERTURB == "fgsm":
-    evaluation_perturbs = testset_fgsm_perturbs
 
 if CLUSTERING_PERTURB == "pgd":
     clustering_perturbs = trainset_pgd_perturbs
@@ -74,9 +65,12 @@ elif CLUSTERING_PERTURB == "fgsm":
     clustering_perturbs = trainset_fgsm_perturbs
 
 # %%
-reinforce_helpers.accuracy_unattacked(model, mnist_helpers.testloader)
+reinforce_helpers.accuracy_unattacked(model, mnist_helpers.testloader, desc="Accuracy")
 reinforce_helpers.accuracy_attacked(
-    model, mnist_helpers.testloader, evaluation_perturbs
+    model, mnist_helpers.testloader, testset_pgd_perturbs, desc="PGD accuracy"
+)
+reinforce_helpers.accuracy_attacked(
+    model, mnist_helpers.testloader, testset_fgsm_perturbs, desc="FGSM accuracy"
 )
 
 # %%
@@ -101,7 +95,10 @@ reinforced_model = reinforce.k_reinforce(model, trainloader, adversarialloader, 
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 
 # %%
-reinforce_helpers.accuracy_unattacked(reinforced_model, mnist_helpers.testloader)
+reinforce_helpers.accuracy_unattacked(reinforced_model, mnist_helpers.testloader, desc="Accuracy")
 reinforce_helpers.accuracy_attacked(
-    reinforced_model, mnist_helpers.testloader, evaluation_perturbs
+    reinforced_model, mnist_helpers.testloader, testset_pgd_perturbs, desc="PGD accuracy"
+)
+reinforce_helpers.accuracy_attacked(
+    reinforced_model, mnist_helpers.testloader, testset_fgsm_perturbs, desc="FGSM accuracy"
 )
