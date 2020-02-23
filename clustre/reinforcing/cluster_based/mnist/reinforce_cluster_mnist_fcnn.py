@@ -13,12 +13,20 @@ from clustre.helpers import mnist_helpers
 from clustre.reinforcing import helpers as reinforce_helpers
 from clustre.reinforcing.cluster_based import reinforce
 
+parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description='Reinforce using cluster-based method')
+parser.add_argument('--eps', type=float, default=0.2, help='Epsilon')
+parser.add_argument('--nclus', type=int, default=100, help='Amount of clusters')
+parser.add_argument('--eval', type=str, default="pgd", help='Input dir for videos')
+parser.add_argument('--clus', type=str, default="pgd", help='Output dir for image')
+parser.add_argument('--learn', type=str, default="pgd", help='Output dir for image')
+
 # PARAMETERS
-EPSILON = 0.2
-N_CLUSTERS = 100
-EVALUATION_PERTURB = "pgd"
-CLUSTERING_PERTURB = "pgd"
-LEARNING_PERTURB = "pgd"
+EPSILON = parser.eps
+N_CLUSTERS = parser.nclus
+EVALUATION_PERTURB = parser.eval
+CLUSTERING_PERTURB = parser.clus
+LEARNING_PERTURB = parser.learn
 
 
 logging.basicConfig(
