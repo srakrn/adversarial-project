@@ -6,13 +6,7 @@ from torchvision import datasets, transforms
 
 
 def pgd(
-    model,
-    criterion,
-    loader,
-    epsilon=0.3,
-    n_epoches=40,
-    verbose=False,
-    cuda=False,
+    model, criterion, loader, epsilon=0.3, n_epoches=40, verbose=False, cuda=False,
 ):
     """Generate perturbations on the dataset when given a model and a criterion
     using a maximised loss method
@@ -131,6 +125,7 @@ def pgd_single_point(
     images,
     labels,
     epsilon=0.3,
+    step_size=2 / 255,
     n_epoches=40,
     verbose=False,
     cuda=False,
@@ -170,22 +165,25 @@ def pgd_single_point(
         images = images.to("cpu")
         labels = labels.to("cpu")
 
-    #  Create a random array of perturbation
-    if cuda:
-        perturb = torch.zeros(images.shape[1:], device="cuda", requires_grad=True)
-    else:
-        perturb = torch.zeros(images.shape[1:], requires_grad=True)
-
-    images.requires_grad = True
+    original_image = images.clone().detach()
 
     for e in range(n_epoches):
-        output = model(torch.clamp(images + perturb, -1, 1))
+        images.requires_grad = True
+
+        output = model(images)
+
+        model.zero_grad()
         loss = criterion(output, labels)
         loss.backward()
 
-        perturb = epsilon * images.grad.mean(dim=0).sign()
-        perturb.data.clamp_(-epsilon, epsilon)
-    return perturb.cpu() / epsilon
+        adversarial_images = images + step_size * images.grad.mean(
+            dim=0
+        ).sign().unsqueeze_(0)
+        perturb = torch.clamp(
+            adversarial_images - original_image, min=-epsilon, max=epsilon
+        )
+        images = torch.clamp(original_image + perturb, min=-1, max=1).detach()
+    return (images - original_image).cpu() / epsilon
 
 
 def fgsm(model, criterion, loader, verbose=False, cuda=False):
