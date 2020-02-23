@@ -23,11 +23,13 @@ parser.add_argument('--clus', type=str, default="pgd", help='Output dir for imag
 parser.add_argument('--learn', type=str, default="pgd", help='Output dir for image')
 
 # PARAMETERS
-EPSILON = parser.eps
-N_CLUSTERS = parser.nclus
-EVALUATION_PERTURB = parser.eval
-CLUSTERING_PERTURB = parser.clus
-LEARNING_PERTURB = parser.learn
+args= parser.parse_args()
+
+EPSILON = args.eps
+N_CLUSTERS = args.nclus
+EVALUATION_PERTURB = args.eval
+CLUSTERING_PERTURB = args.clus
+LEARNING_PERTURB = args.learn
 
 
 logging.basicConfig(
@@ -58,6 +60,7 @@ testset_pgd_perturbs = torch.load(
 logging.info(f"EPSILON = {EPSILON}")
 logging.info(f"N_CLUSTERS = {N_CLUSTERS}")
 logging.info(f"EVALUATION_PERTURB = {EVALUATION_PERTURB}")
+logging.info(f"CLUSTERING_PERTURB = {CLUSTERING_PERTURB}")
 logging.info(f"LEARNING_PERTURB = {LEARNING_PERTURB}")
 
 if EVALUATION_PERTURB == "pgd":
