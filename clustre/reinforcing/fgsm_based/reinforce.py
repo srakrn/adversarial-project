@@ -21,7 +21,7 @@ def fgsm_reinforce(
     model,
     trainloader,
     n_epoches=10,
-    epsilon=0.2,
+    epsilon=0.3,
     criterion=nn.CrossEntropyLoss,
     optimizer=optim.Adam,
     cuda=False,
