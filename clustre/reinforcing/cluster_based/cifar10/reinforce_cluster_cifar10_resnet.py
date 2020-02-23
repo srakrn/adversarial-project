@@ -10,11 +10,8 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-import cifar10_helpers  # isort:skip
-import reinforce  # isort:skip
+from clustre.helpers import cifar10_helpers
+from clustre.reinforcing.cluster_based import reinforce
 
 logging.basicConfig(
     filename=f"logs/{os.path.basename(__file__)}.log",
@@ -52,6 +49,7 @@ logging.info(classification_report(y_test, y_pred))
 y_test = []
 y_pred = []
 for (image, label), perturb in zip(cifar10_helpers.testloader, testset_perturbs):
+    perturb = perturb.to("cpu")
     y_test.append(label.item())
     y_pred.append(
         model(image + 0.2 * perturb.reshape(1, 3, 32, 32)).argmax(axis=1).item()
@@ -66,7 +64,7 @@ k = 100
 
 # %%
 train_target, train_perturb, train_km = reinforce.calculate_k_perturbs(
-    model, cifar10_helpers.cifar10_trainset, trainset_perturbs.detach().numpy(), k
+    model, cifar10_helpers.cifar10_trainset, trainset_perturbs.detach().cpu().numpy(), k, verbose=True
 )
 
 # %%
@@ -77,9 +75,10 @@ adversarialloader = DataLoader(ad, batch_size=16, shuffle=True)
 
 # %%
 model.train()
+trainloader = DataLoader(cifar10_helpers.cifar10_trainset, batch_size=32, shuffle=False)
 logging.info(f"Started reinforcing on {reinforce.get_time()}")
 reinforced_model = reinforce.k_reinforce(
-    model, cifar10_helpers.trainloader, adversarialloader, n_epoches=20, adversarial_weight=5, cuda=True
+    model, trainloader, adversarialloader
 )
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 model.eval()
@@ -99,6 +98,7 @@ logging.info(classification_report(y_test, y_pred))
 y_test = []
 y_pred = []
 for (image, label), perturb in zip(cifar10_helpers.testloader, testset_perturbs):
+    perturb = perturb.to("cpu")
     y_test.append(label.item())
     y_pred.append(
         model(image + 0.2 * perturb.reshape(1, 3, 32, 32)).argmax(axis=1).item()
