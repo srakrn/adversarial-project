@@ -27,6 +27,7 @@ def calculate_k_perturbs(
     lr=0.1,
     n_epoches=10,
     verbose=0,
+    cuda=False
 ):
     """Clustering analysis on the perturbation and attempt to attack the clustered group together.
 
@@ -50,13 +51,15 @@ def calculate_k_perturbs(
         If attack_method is "maxloss", determine the epoches used to maximise the loss
     verbose: int
         Level of verbosity
-    log: bool
-        Enable logging
+    cuda: bool
+        If set to `True`, will use CUDA
 
     Returns
     -------
     (k_points, k_perturbs, km)
     """
+    if cuda:
+        model.to("cuda")
     # Set model to evaluation mode, thus not calculating its gradient
     model.eval()
 
@@ -89,10 +92,12 @@ def calculate_k_perturbs(
             print(f"Training #{i+1} perturb")
             print(f"\tThis set of perturbation will attack {len(data)} data points.")
 
-        if attack_method == "maxloss":
-            perturbs = attack.maxloss_single_point(model, criterion, Xk, yk)
+        if attack_method == "pgd":
+            perturbs = attack.pgd_single_point(model, criterion, Xk, yk, cuda=cuda)
         elif attack_method == "fgsm":
-            perturbs = attack.fgsm_single_point(model, criterion, Xk, yk)
+            perturbs = attack.fgsm_single_point(model, criterion, Xk, yk, cuda=cuda)
+        else:
+            raise AttributeError(f"Attacking method `{attack_method} is unknown.")
         k_points.append(idx)
         k_perturbs.append(perturbs.detach())
     log.info(f"Completion of calculation: {get_time()}")
@@ -129,7 +134,7 @@ class AdversarialDataset(Dataset):
     Adversarial dataset to be feeded to the model
     """
 
-    def __init__(self, data, targets, perturbs, density=0.2):
+    def __init__(self, data, targets, perturbs, density=0.2, cuda=False):
         """Initialize function for the dataset
 
         Parameters
@@ -142,12 +147,15 @@ class AdversarialDataset(Dataset):
             The perturbation for the dataset
         density: float
             The density of the perturbation, considered as a multiplier
+        cuda: bool
+            Choose whether to use CUDA or not
         """
         super().__init__()
         self.data = data
         self.targets = targets
         self.perturbs = perturbs
         self.density = density
+        self.cuda = cuda
 
     def __len__(self):
         return len(self.data)
@@ -161,6 +169,16 @@ class AdversarialDataset(Dataset):
     def __getitem__(self, idx):
         X, y = self.data[idx]
         perturb = self._get_nth_perturb(idx)
+        if self.cuda:
+            if not X.is_cuda:
+                X = X.to("cuda")
+            if not perturb.is_cuda:
+                perturb = perturb.to("cuda")
+        else:
+            if X.is_cuda:
+                X = X.to("cpu")
+            if perturb.is_cuda:
+                perturb.to("cpu")
         return (X + self.density * perturb), y
 
     # %%
@@ -208,6 +226,7 @@ def k_reinforce(
     log.info(f"Training started: {get_time()}")
     criterion = criterion(reduction="none")
     optimizer = optimizer(model.parameters())
+    model.train()
     for e in range(n_epoches):
         running_loss = 0
         for i, ((images, labels), (adver_images, adver_labels)) in enumerate(zip(

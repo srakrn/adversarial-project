@@ -39,14 +39,20 @@ def pgd(
 
     if cuda:
         model = model.to("cuda")
+    else:
+        model = model.to("cpu")
+
     for i, (image, label) in enumerate(loader):
         if verbose:
             print("Image:", i + 1)
-        if type(label) in [int, float]:
-            label = torch.tensor([label])
+
         if cuda:
             image = image.to("cuda")
             label = label.to("cuda")
+        else:
+            image = image.to("cpu")
+            label = label.to("cpu")
+
         #  Create a random array of perturbation
         if cuda:
             perturb = torch.zeros(image.shape, device="cuda", requires_grad=True)
@@ -72,7 +78,7 @@ def pgd(
     if cuda:
         model.to("cpu")
     perturbs = torch.cat(perturbs)
-    return perturbs
+    return perturbs.cpu()
 
 
 def pgd_array(
@@ -119,14 +125,22 @@ def pgd_array(
 
     if cuda:
         model = model.to("cuda")
+    else:
+        model = model.to("cpu")
+
     for i, (image, label) in zip(images, labels):
         if verbose:
             print("Image:", i + 1)
+
         image.unsqeeze_(0)
         label = torch.tensor([label])
+        
         if cuda:
             image = image.to("cuda")
             label = label.to("cuda")
+        else:
+            image = image.to("cpu")
+            label = label.to("cpu")
 
         #  Create a random array of perturbation
         if cuda:
@@ -153,7 +167,7 @@ def pgd_array(
     if cuda:
         model.to("cpu")
     perturbs = torch.cat(perturbs)
-    return perturbs
+    return perturbs.cpu()
 
 
 def pgd_single_point(
@@ -196,13 +210,17 @@ def pgd_single_point(
     model.eval()
 
     if cuda:
-        model = model.to("cuda")
+        model.to("cuda")
+        images = images.to("cuda")
+        labels = labels.to("cuda")
+    else:
+        model.to("cpu")
+        images = images.to("cpu")
+        labels = labels.to("cpu")
 
     #  Create a random array of perturbation
     if cuda:
-        perturb = torch.zeros(
-            images.shape[1:], device="cuda", requires_grad=True
-        ).unsqueeze_(0)
+        perturb = torch.zeros(images.shape[1:], device="cuda", requires_grad=True)
     else:
         perturb = torch.zeros(images.shape[1:], requires_grad=True)
 
@@ -221,7 +239,7 @@ def pgd_single_point(
         perturb.data.clamp_(-epsilon, epsilon)
         if verbose:
             print("\tNoise loss:", -1 * running_loss)
-    return perturb
+    return perturb.cpu()
 
 
 def fgsm(model, criterion, loader, verbose=False, cuda=False):
@@ -249,11 +267,16 @@ def fgsm(model, criterion, loader, verbose=False, cuda=False):
 
     if cuda:
         model.to("cuda")
+    else:
+        model.to("cpu")
 
     for i, (image, label) in enumerate(loader):
         if cuda:
             image = image.to("cuda")
             label = label.to("cuda")
+        else:
+            image = image.to("cpu")
+            label = label.to("cpu")
         if verbose:
             print("Image:", i + 1)
 
@@ -274,7 +297,7 @@ def fgsm(model, criterion, loader, verbose=False, cuda=False):
 
     if cuda:
         model.to("cpu")
-    return perturbs
+    return perturbs.cpu()
 
 
 def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
@@ -304,8 +327,17 @@ def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
 
     if cuda:
         model.to("cuda")
+    else:
+        model.to("cpu")
 
     for i, (image, label) in enumerate(zip(images, labels)):
+        if cuda:
+            image = image.to("cuda")
+            label = label.to("cuda")
+        else:
+            image = image.to("cpu")
+            label = label.to("cpu")
+
         image.unsqueeze_(0)
         label.unsqueeze_(0)
 
@@ -320,7 +352,7 @@ def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
 
         perturb = image.grad.data.sign()
         perturbs.append(perturb)
-    return torch.cat(perturbs)
+    return torch.cat(perturbs).cpu()
 
 
 def fgsm_single_point(model, criterion, images, labels, cuda=False):
@@ -348,6 +380,8 @@ def fgsm_single_point(model, criterion, images, labels, cuda=False):
 
     if cuda:
         model.to("cuda")
+        images = images.to("cuda")
+        labels = labels.to("cuda")
 
     images.requires_grad = True
 
@@ -356,4 +390,4 @@ def fgsm_single_point(model, criterion, images, labels, cuda=False):
     loss.backward()
 
     perturb = images.grad.data.mean(dim=0).sign()
-    return perturb
+    return perturb.cpu()

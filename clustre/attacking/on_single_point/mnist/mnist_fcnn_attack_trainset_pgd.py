@@ -26,4 +26,4 @@ logging.info("Started running")
 perturbs = pgd(mnist_fcnn_model, criterion, trainloader, verbose=True, cuda=True)
 logging.info("Ended running")
 #  %%
-# torch.save(perturbs, OUTPUT_PATH)
+torch.save(perturbs, OUTPUT_PATH)
