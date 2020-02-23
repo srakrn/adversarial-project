@@ -18,8 +18,8 @@ parser = argparse.ArgumentParser()
 parser = argparse.ArgumentParser(description='Reinforce using cluster-based method')
 parser.add_argument('--eps', type=float, default=0.2, help='Epsilon')
 parser.add_argument('--nclus', type=int, default=100, help='Amount of clusters')
-parser.add_argument('--clus', type=str, default="pgd", help='Output dir for image')
-parser.add_argument('--learn', type=str, default="pgd", help='Output dir for image')
+parser.add_argument('--clus', type=str, default="fgsm", help='Perturbations to be clustered')
+parser.add_argument('--learn', type=str, default="pgd", help='Method for perturbations generation')
 
 # PARAMETERS
 args = parser.parse_args()
