@@ -297,5 +297,6 @@ def fgsm_single_point(model, criterion, images, labels, cuda=False):
     loss = criterion(output, labels)
     loss.backward()
 
-    perturb = images.grad.data.mean(dim=0).sign()
-    return perturb.cpu()
+    perturb = images.grad.data.mean(dim=0).sign().unsqueeze_(0)
+    attack_image = torch.clamp(images + perturb, min=-1, max=1)
+    return (attack_image - images)[0].cpu()
