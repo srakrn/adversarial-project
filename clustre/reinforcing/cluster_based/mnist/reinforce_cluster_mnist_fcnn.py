@@ -23,7 +23,7 @@ parser.add_argument('--clus', type=str, default="pgd", help='Output dir for imag
 parser.add_argument('--learn', type=str, default="pgd", help='Output dir for image')
 
 # PARAMETERS
-args= parser.parse_args()
+args = parser.parse_args()
 
 EPSILON = args.eps
 N_CLUSTERS = args.nclus
