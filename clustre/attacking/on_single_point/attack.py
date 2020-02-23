@@ -198,7 +198,7 @@ def pgd_single_point(
         perturb.data.clamp_(-epsilon, epsilon)
     if verbose:
         print("\tNoise loss:", -1 * running_loss)
-    return perturb.cpu()
+    return perturb.cpu() / epsilon
 
 
 def fgsm(model, criterion, loader, verbose=False, cuda=False):
