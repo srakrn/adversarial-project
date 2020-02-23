@@ -27,6 +27,8 @@ def pgd(
         Epoches to maximise the loss
     verbose: bool
         Verbosity setting
+    cuda: bool
+        If set to `True`, will use CUDA.
 
     Returns
     -------
@@ -87,6 +89,8 @@ def pgd_array(
         Epoches to maximise the loss
     verbose: bool
         Verbosity setting
+    cuda: bool
+        If set to `True`, will use CUDA.
 
     Returns
     -------
@@ -148,6 +152,8 @@ def pgd_single_point(
         Epoches to maximise the loss
     verbose: bool
         Verbosity setting
+    cuda: bool
+        If set to `True`, will use CUDA.
 
     Returns
     -------
@@ -186,7 +192,7 @@ def pgd_single_point(
     return (images - original_image).cpu() / epsilon
 
 
-def fgsm(model, criterion, loader, verbose=False, cuda=False):
+def fgsm(model, criterion, loader, epsilon=0.3, verbose=False, cuda=False):
     """Generate perturbations on the dataset when given a model and a criterion
 
     Parameters
@@ -197,8 +203,12 @@ def fgsm(model, criterion, loader, verbose=False, cuda=False):
         A criterion function
     loader: DataLoader
         A DataLoader instance with batch_size=1
+    epsilon: float
+        Maximum perturbation density
     verbose: bool
         Verbosity setting
+    cuda: bool
+        If set to `True`, will use CUDA.
 
     Returns
     -------
@@ -218,14 +228,14 @@ def fgsm(model, criterion, loader, verbose=False, cuda=False):
         if verbose:
             print(f"Image {i+1}")
 
-        perturb = fgsm_single_point(model, criterion, image, label, cuda=cuda,)
+        perturb = fgsm_single_point(model, criterion, image, label, epsilon=epsilon, cuda=cuda)
         perturbs.append(perturb)
 
     perturbs = torch.stack(perturbs)
     return perturbs.cpu()
 
 
-def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
+def fgsm_array(model, criterion, images, labels, epsilon=0.3, verbose=False, cuda=False):
     """Generate perturbations on the dataset when given a model and a criterion
 
     Parameters
@@ -238,8 +248,12 @@ def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
         Images to attack
     labels: torch.Tensor
         Labels for the images
+    epsilon: float
+        Maximum perturbation density
     verbose: bool
         Verbosity setting
+    cuda: bool
+        If set to `True`, will use CUDA.
 
     Returns
     -------
@@ -256,14 +270,14 @@ def fgsm_array(model, criterion, images, labels, verbose=False, cuda=False):
         image.unsqueeze_(0)
         label = torch.tensor([label])
 
-        perturb = fgsm_single_point(model, criterion, image, label, cuda=cuda,)
+        perturb = fgsm_single_point(model, criterion, image, label, epsilon=epsilon, cuda=cuda)
         perturbs.append(perturb)
 
     perturbs = torch.stack(perturbs)
     return perturbs.cpu()
 
 
-def fgsm_single_point(model, criterion, images, labels, cuda=False):
+def fgsm_single_point(model, criterion, images, labels, epsilon=0.3, cuda=False):
     """Generate a perturbation attacking a group of images and labels
 
     Parameters
@@ -276,8 +290,12 @@ def fgsm_single_point(model, criterion, images, labels, cuda=False):
         Images to attack
     labels: torch.Tensor
         Labels for the images
+    epsilon: float
+        Maximum perturbation density
     verbose: bool
         Verbosity setting
+    cuda: bool
+        If set to `True`, will use CUDA.
 
     Returns
     -------
@@ -297,6 +315,6 @@ def fgsm_single_point(model, criterion, images, labels, cuda=False):
     loss = criterion(output, labels)
     loss.backward()
 
-    perturb = images.grad.data.mean(dim=0).sign().unsqueeze_(0)
+    perturb = images.grad.data.mean(dim=0).sign().unsqueeze_(0) * epsilon
     attack_image = torch.clamp(images + perturb, min=-1, max=1)
-    return (attack_image - images)[0].cpu()
+    return (attack_image - images)[0].cpu() / epsilon
