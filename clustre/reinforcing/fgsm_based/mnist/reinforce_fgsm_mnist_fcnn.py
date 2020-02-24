@@ -10,6 +10,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
+from clustre.attacking.on_single_point import attack
 from clustre.helpers import mnist_helpers
 from clustre.reinforcing import helpers as reinforce_helpers
 from clustre.reinforcing.fgsm_based import reinforce
@@ -61,18 +62,27 @@ reinforced_model = reinforce.fgsm_reinforce(model, trainloader, cuda=True)
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 
 # %%
-reinforce_helpers.accuracy_unattacked(
-    reinforced_model, mnist_helpers.testloader, desc="Accuracy"
+pn = os.path.basename(__file__).split(".")[0]
+torch.save(reinforced_model.state_dict(), f"models/reinforced/{pn}")
+
+# %%
+new_testset_pgd_perturbs = attack.pgd(reinforced_model, nn.CrossEntropyLoss, mnist_helpers.testloader, EPSILON)
+new_testset_fgsm_perturbs = attack.fgsm(reinforced_model, nn.CrossEntropyLoss, mnist_helpers.testloader, EPSILON)
+
+# %%
+reinforce_helpers.accuracy_unattacked(reinforced_model, mnist_helpers.testloader, desc="Accuracy")
+reinforce_helpers.accuracy_attacked(
+    reinforced_model, mnist_helpers.testloader, testset_pgd_perturbs, desc="PGD accuracy"
 )
 reinforce_helpers.accuracy_attacked(
-    reinforced_model,
-    mnist_helpers.testloader,
-    testset_pgd_perturbs,
-    desc="PGD accuracy",
+    reinforced_model, mnist_helpers.testloader, testset_fgsm_perturbs, desc="FGSM accuracy"
+)
+
+# %%
+reinforce_helpers.accuracy_unattacked(reinforced_model, mnist_helpers.testloader, desc="Accuracy on new perturbs")
+reinforce_helpers.accuracy_attacked(
+    reinforced_model, mnist_helpers.testloader, new_testset_pgd_perturbs, desc="PGD accuracy on new perturbs"
 )
 reinforce_helpers.accuracy_attacked(
-    reinforced_model,
-    mnist_helpers.testloader,
-    testset_fgsm_perturbs,
-    desc="FGSM accuracy",
+    reinforced_model, mnist_helpers.testloader, new_testset_fgsm_perturbs, desc="FGSM accuracy on new perturbs"
 )
