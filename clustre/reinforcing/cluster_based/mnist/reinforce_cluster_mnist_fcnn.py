@@ -97,11 +97,11 @@ logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 
 # %%
 pn = os.path.basename(__file__).split(".")[0]
-torch.save(reinforced_model.state_dict(), f"models/reinforced/{pn}")
+torch.save(reinforced_model.state_dict(), f"models/reinforced/{pn}.model")
 
 # %%
-new_testset_pgd_perturbs = attack.pgd(reinforced_model, nn.CrossEntropyLoss, mnist_helpers.testloader, EPSILON)
-new_testset_fgsm_perturbs = attack.fgsm(reinforced_model, nn.CrossEntropyLoss, mnist_helpers.testloader, EPSILON)
+new_testset_pgd_perturbs = attack.pgd(reinforced_model, nn.CrossEntropyLoss(), mnist_helpers.testloader, EPSILON)
+new_testset_fgsm_perturbs = attack.fgsm(reinforced_model, nn.CrossEntropyLoss(), mnist_helpers.testloader, EPSILON)
 
 # %%
 reinforce_helpers.accuracy_unattacked(reinforced_model, mnist_helpers.testloader, desc="Accuracy")
