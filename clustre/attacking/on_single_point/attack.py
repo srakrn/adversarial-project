@@ -189,7 +189,7 @@ def pgd_single_point(
             adversarial_images - original_image, min=-epsilon, max=epsilon
         )
         images = torch.clamp(original_image + perturb, min=-1, max=1).detach()
-    return (images - original_image).cpu() / epsilon
+    return (images - original_image).mean(dim=0).cpu() / epsilon
 
 
 def fgsm(model, criterion, loader, epsilon=0.3, verbose=False, cuda=False):
@@ -317,4 +317,4 @@ def fgsm_single_point(model, criterion, images, labels, epsilon=0.3, cuda=False)
 
     perturb = images.grad.data.mean(dim=0).sign().unsqueeze_(0) * epsilon
     attack_image = torch.clamp(images + perturb, min=-1, max=1)
-    return (attack_image - images)[0].cpu() / epsilon
+    return (attack_image - images).mean(dim=0).sign().cpu() / epsilon
