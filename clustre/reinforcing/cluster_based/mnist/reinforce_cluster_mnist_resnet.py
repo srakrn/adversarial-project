@@ -16,11 +16,15 @@ from clustre.reinforcing import helpers as reinforce_helpers
 from clustre.reinforcing.cluster_based import reinforce
 
 parser = argparse.ArgumentParser()
-parser = argparse.ArgumentParser(description='Reinforce using cluster-based method')
-parser.add_argument('--eps', type=float, default=0.2, help='Epsilon')
-parser.add_argument('--nclus', type=int, default=100, help='Amount of clusters')
-parser.add_argument('--clus', type=str, default="fgsm", help='Perturbations to be clustered')
-parser.add_argument('--learn', type=str, default="pgd", help='Method for perturbations generation')
+parser = argparse.ArgumentParser(description="Reinforce using cluster-based method")
+parser.add_argument("--eps", type=float, default=0.2, help="Epsilon")
+parser.add_argument("--nclus", type=int, default=100, help="Amount of clusters")
+parser.add_argument(
+    "--clus", type=str, default="fgsm", help="Perturbations to be clustered"
+)
+parser.add_argument(
+    "--learn", type=str, default="pgd", help="Method for perturbations generation"
+)
 
 # PARAMETERS
 args = parser.parse_args()
@@ -82,7 +86,7 @@ train_target, train_perturb, train_km = reinforce.calculate_k_perturbs(
     N_CLUSTERS,
     verbose=True,
     cuda=True,
-    attack_method=LEARNING_PERTURB
+    attack_method=LEARNING_PERTURB,
 )
 
 ad = reinforce.AdversarialDataset(
@@ -92,7 +96,9 @@ adversarialloader = DataLoader(ad, batch_size=16, shuffle=True)
 
 trainloader = DataLoader(mnist_helpers.mnist_trainset, batch_size=32, shuffle=False)
 logging.info(f"Started reinforcing on {reinforce.get_time()}")
-reinforced_model = reinforce.k_reinforce(model, trainloader, adversarialloader, cuda=True)
+reinforced_model = reinforce.k_reinforce(
+    model, trainloader, adversarialloader, cuda=True, n_epoches=1
+)
 logging.info(f"Finished reinforcing on {reinforce.get_time()}")
 
 # %%
@@ -100,23 +106,50 @@ pn = os.path.basename(__file__).split(".")[0]
 torch.save(reinforced_model.state_dict(), f"models/reinforced/{pn}.model")
 
 # %%
-new_testset_pgd_perturbs = attack.pgd(reinforced_model, nn.CrossEntropyLoss(), mnist_helpers.testloader, EPSILON)
-new_testset_fgsm_perturbs = attack.fgsm(reinforced_model, nn.CrossEntropyLoss(), mnist_helpers.testloader, EPSILON)
+new_testset_pgd_perturbs = attack.pgd(
+    reinforced_model,
+    nn.CrossEntropyLoss(),
+    mnist_helpers.testloader,
+    EPSILON,
+    verbose=True,
+)
+new_testset_fgsm_perturbs = attack.fgsm(
+    reinforced_model,
+    nn.CrossEntropyLoss(),
+    mnist_helpers.testloader,
+    EPSILON,
+    verbose=True,
+)
 
 # %%
-reinforce_helpers.accuracy_unattacked(reinforced_model, mnist_helpers.testloader, desc="Accuracy")
-reinforce_helpers.accuracy_attacked(
-    reinforced_model, mnist_helpers.testloader, testset_pgd_perturbs, desc="PGD accuracy"
+reinforce_helpers.accuracy_unattacked(
+    reinforced_model, mnist_helpers.testloader, desc="Accuracy"
 )
 reinforce_helpers.accuracy_attacked(
-    reinforced_model, mnist_helpers.testloader, testset_fgsm_perturbs, desc="FGSM accuracy"
+    reinforced_model,
+    mnist_helpers.testloader,
+    testset_pgd_perturbs,
+    desc="PGD accuracy",
 )
-
+reinforce_helpers.accuracy_attacked(
+    reinforced_model,
+    mnist_helpers.testloader,
+    testset_fgsm_perturbs,
+    desc="FGSM accuracy",
+)
 # %%
-reinforce_helpers.accuracy_unattacked(reinforced_model, mnist_helpers.testloader, desc="Accuracy on new perturbs")
-reinforce_helpers.accuracy_attacked(
-    reinforced_model, mnist_helpers.testloader, new_testset_pgd_perturbs, desc="PGD accuracy on new perturbs"
+reinforce_helpers.accuracy_unattacked(
+    reinforced_model, mnist_helpers.testloader, desc="Accuracy on new perturbs"
 )
 reinforce_helpers.accuracy_attacked(
-    reinforced_model, mnist_helpers.testloader, new_testset_fgsm_perturbs, desc="FGSM accuracy on new perturbs"
+    reinforced_model,
+    mnist_helpers.testloader,
+    new_testset_pgd_perturbs,
+    desc="PGD accuracy on new perturbs",
+)
+reinforce_helpers.accuracy_attacked(
+    reinforced_model,
+    mnist_helpers.testloader,
+    new_testset_fgsm_perturbs,
+    desc="FGSM accuracy on new perturbs",
 )
