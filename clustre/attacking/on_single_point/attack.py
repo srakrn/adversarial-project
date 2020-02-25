@@ -131,7 +131,7 @@ def pgd_single_point(
     epsilon=0.3,
     step_size=2 / 255,
     n_epoches=40,
-    verbose=False,
+    verbose=True,
     cuda=False,
 ):
     """Generate a perturbation attacking a group of images and labels
@@ -228,14 +228,18 @@ def fgsm(model, criterion, loader, epsilon=0.3, verbose=False, cuda=False):
         if verbose:
             print(f"Image {i+1}")
 
-        perturb = fgsm_single_point(model, criterion, image, label, epsilon=epsilon, cuda=cuda)
+        perturb = fgsm_single_point(
+            model, criterion, image, label, epsilon=epsilon, cuda=cuda
+        )
         perturbs.append(perturb)
 
     perturbs = torch.stack(perturbs)
     return perturbs.cpu()
 
 
-def fgsm_array(model, criterion, images, labels, epsilon=0.3, verbose=False, cuda=False):
+def fgsm_array(
+    model, criterion, images, labels, epsilon=0.3, verbose=False, cuda=False
+):
     """Generate perturbations on the dataset when given a model and a criterion
 
     Parameters
@@ -270,7 +274,9 @@ def fgsm_array(model, criterion, images, labels, epsilon=0.3, verbose=False, cud
         image.unsqueeze_(0)
         label = torch.tensor([label])
 
-        perturb = fgsm_single_point(model, criterion, image, label, epsilon=epsilon, cuda=cuda)
+        perturb = fgsm_single_point(
+            model, criterion, image, label, epsilon=epsilon, cuda=cuda
+        )
         perturbs.append(perturb)
 
     perturbs = torch.stack(perturbs)
@@ -317,4 +323,4 @@ def fgsm_single_point(model, criterion, images, labels, epsilon=0.3, cuda=False)
 
     perturb = images.grad.data.mean(dim=0).sign().unsqueeze_(0) * epsilon
     attack_image = torch.clamp(images + perturb, min=-1, max=1)
-    return (attack_image - images).mean(dim=0).sign().cpu() / epsilon
+    return (attack_image - images).mean(dim=0).cpu() / epsilon
