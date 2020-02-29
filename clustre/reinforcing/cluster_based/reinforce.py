@@ -26,7 +26,7 @@ def calculate_k_perturbs(
     attack_method="fgsm",
     n_epoches=10,
     verbose=0,
-    cuda=False,
+    cuda=False
 ):
     """Clustering analysis on the perturbation and attempt to attack the clustered group together.
 
@@ -72,8 +72,7 @@ def calculate_k_perturbs(
 
     # Create empty arrays to store results
     k_points = []
-    fgsm = []
-    pgd = []
+    k_perturbs = []
 
     # Iterate over clusters in k-Means result
     for i in set(km_clusters):
@@ -90,17 +89,17 @@ def calculate_k_perturbs(
             print(f"Training #{i+1} perturb")
             print(f"\tThis set of perturbation will attack {len(data)} data points.")
 
-        f = attack.fgsm_single_point(model, criterion, Xk, yk, cuda=cuda)
-        p = attack.pgd_single_point(model, criterion, Xk, yk, cuda=cuda)
-
+        if attack_method == "pgd":
+            perturbs = attack.pgd_single_point(model, criterion, Xk, yk, cuda=cuda)
+        elif attack_method == "fgsm":
+            perturbs = attack.fgsm_single_point(model, criterion, Xk, yk, cuda=cuda)
+        else:
+            raise AttributeError(f"Attacking method `{attack_method} is unknown.")
         k_points.append(idx)
-        fgsm.append(f.detach())
-        pgd.append(p.detach())
-
+        k_perturbs.append(perturbs.detach())
     log.info(f"Completion of calculation: {get_time()}")
-    fgsm = torch.stack(fgsm)
-    pgd = torch.stack(pgd)
-    return [k_points, fgsm, pgd, km]
+    k_perturbs = torch.stack(k_perturbs)
+    return [k_points, k_perturbs, km]
 
 
 # %%
@@ -185,14 +184,14 @@ class AdversarialDataset(Dataset):
 def k_reinforce(
     model,
     trainloader,
-    adversarialloaders,
+    adversarialloader,
     n_epoches=10,
     train_weight=1,
     adversarial_weight=2,
     criterion=nn.CrossEntropyLoss,
     optimizer=optim.Adam,
     drop_last=False,
-    cuda=False,
+    cuda=False
 ):
     """Reinforce the model using cluster-based method
 
@@ -202,7 +201,7 @@ def k_reinforce(
         Module to reinforce
     trainloader: DataLoader
         Dataloader for training points
-    adversarialloaders: list of DataLoader
+    adversarialloader: DataLoader
         Dataloader for adversarial points
     n_epoches: int
         Epoches to retrain
@@ -227,33 +226,34 @@ def k_reinforce(
     model.train()
     for e in range(n_epoches):
         running_loss = 0
-        advers = [iter(i) for i in adversarialloaders]
-        for i, (images, labels) in enumerate(trainloader):
+        for i, ((images, labels), (adver_images, adver_labels)) in enumerate(zip(
+            trainloader, adversarialloader
+        )):
             print(f"Epoch {e+1} Minibatch {i+1}")
-            X = [images]
-            y = [labels]
-            w = [train_weight] * len(labels)
-            for adver in advers:
-                Xp, yp = next(adver)
-                wp = [adversarial_weight] * len(yp)
-                X += Xp.unsqueeze(0)
-                y += [yp]
-                w += wp
-            X = torch.cat(X, 0)
-            y = torch.cat(y, 0)
-            w = torch.tensor(w).float()
-            if cuda:
-                X = X.to("cuda")
-                y = y.to("cuda")
-                w = w.to("cuda")
-            optimizer.zero_grad()
+            X = torch.cat([images, adver_images], 0)
+            y = torch.cat([labels, adver_labels], 0)
+            w = torch.tensor(
+                [
+                    train_weight if i < len(labels) else adversarial_weight
+                    for i in range(len(labels) + len(adver_labels))
+                ]
+            ).float()
+            if (
+                not drop_last
+                or len(w) == trainloader.batch_size + adversarialloader.batch_size
+            ):
+                if cuda:
+                    X = X.to("cuda")
+                    y = y.to("cuda")
+                    w = w.to("cuda")
+                optimizer.zero_grad()
 
-            output = F.log_softmax(model(X), dim=1)
-            loss = torch.dot(criterion(output, y), w)
-            loss.backward()
-            optimizer.step()
+                output = F.log_softmax(model(X), dim=1)
+                loss = torch.dot(criterion(output, y), w)
+                loss.backward()
+                optimizer.step()
 
-            running_loss += loss.item()
+                running_loss += loss.item()
         else:
             print(f"\tTraining loss: {running_loss/len(trainloader)}")
     log.info(f"Training ended: {get_time()}")
