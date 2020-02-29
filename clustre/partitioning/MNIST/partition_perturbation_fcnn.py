@@ -6,7 +6,6 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.linalg as la
-import pandas as pd
 import torch
 import torch.nn.functional as F
 from sklearn.cluster import KMeans
@@ -28,7 +27,7 @@ mnist_testset = datasets.MNIST(
 )
 
 #  %%
-fcnn_perturbs = torch.load("perturbs/on_single_point/fcnn_on_single_point.pt")
+fcnn_perturbs = torch.load("perturbs/on_single_point/mnist/fcnn_fgsm_perturbs_trainset.pt")
 fcnn_perturbs = fcnn_perturbs.detach().numpy()
 fcnn_perturbs = fcnn_perturbs.reshape(-1, 28 * 28)
 fcnn_perturbs.shape
