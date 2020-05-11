@@ -48,7 +48,7 @@ for model_name, model in models.items():
         for images, labels in trainloader:
             images = images.to("cuda")
             labels = labels.to("cuda")
-            images = images.reshape(-1, 1, 28, 28)
+            images = images.reshape(-1, 3, 32, 32)
             optimizer.zero_grad()
             output = model(images)
             loss = criterion(output, labels)
@@ -61,7 +61,7 @@ for model_name, model in models.items():
             for images, labels in testloader:
                 images = images.to("cuda")
                 labels = labels.to("cuda")
-                images = images.reshape(-1, 1, 28, 28)
+                images = images.reshape(-1, 3, 32, 32)
                 output = model(images)
                 testing_loss += loss.item()
             testing_loss /= len(testloader)
