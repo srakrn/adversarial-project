@@ -21,11 +21,12 @@ transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
 
+
 trainset = datasets.CIFAR10(
-    root="cifar10", train=True, download=True, transform=train_transform
+    root="datasets/cifar10", train=True, download=True, transform=train_transform
 )
 testset = datasets.CIFAR10(
-    root="cifar10", train=False, download=True, transform=transform
+    root="datasets/cifar10", train=False, download=True, transform=transform
 )
 
 trainloader = DataLoader(trainset, batch_size=32, shuffle=True, num_workers=2)

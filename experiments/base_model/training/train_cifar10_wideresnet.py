@@ -13,18 +13,14 @@ transform = transforms.Compose(
 )
 
 trainset = datasets.CIFAR10(
-    root="cifar10", train=True, download=True, transform=transform
+    root="datasets/cifar10", train=True, download=True, transform=transform
 )
 testset = datasets.CIFAR10(
-    root="cifar10", train=False, download=True, transform=transform
+    root="datasets/cifar10", train=False, download=True, transform=transform
 )
 
-trainloader = DataLoader(
-    trainset, batch_size=128, shuffle=True, num_workers=2
-)
-testloader = DataLoader(
-    testset, batch_size=128, shuffle=False, num_workers=2
-)
+trainloader = DataLoader(trainset, batch_size=128, shuffle=True, num_workers=2)
+testloader = DataLoader(testset, batch_size=128, shuffle=False, num_workers=2)
 
 model = models.wide_resnet50_2(pretrained=True)
 model.fc = nn.Linear(in_features=2048, out_features=10, bias=True)

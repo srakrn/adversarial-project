@@ -11,11 +11,11 @@ transform = transforms.Compose(
 )
 
 mnist_trainset = datasets.MNIST(
-    root="mnist", train=True, download=True, transform=transform
+    root="datasets/mnist", train=True, download=True, transform=transform
 )
 
 mnist_testset = datasets.MNIST(
-    root="mnist", train=False, download=True, transform=transform
+    root="datasets/mnist", train=False, download=True, transform=transform
 )
 
 trainloader = DataLoader(mnist_trainset, batch_size=100, shuffle=True)
