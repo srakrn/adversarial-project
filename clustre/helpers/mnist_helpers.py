@@ -85,3 +85,4 @@ mnist_resnet_model.conv1 = nn.Conv2d(
 mnist_resnet_model.fc = nn.Linear(in_features=512, out_features=10, bias=True)
 mnist_resnet_state = torch.load(RESNET_PATH)
 mnist_resnet_model.load_state_dict(mnist_resnet_state)
+        logging.info(clf_report)
