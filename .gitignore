@@ -119,7 +119,7 @@ temp
 /mnist
 /cifar10
 /tensorboard
-models
-perturbs
+/perturbs
+/results
 bfg-1.13.0.jar
 logs
