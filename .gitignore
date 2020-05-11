@@ -115,6 +115,7 @@ temp
 .log
 *.code-workspace
 
+/datasets
 /mnist
 /cifar10
 /tensorboard
