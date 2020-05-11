@@ -87,4 +87,6 @@ for e in range(epochs):
     print(f"Epoch {e + 1}")
     print(f"Train loss: {training_loss}, accuracy: {train_accuracy}")
     print(f"Testing loss: {testing_loss}, accuracy: {test_accuracy}")
-torch.save(model.state_dict(), f"models/cifar10_resnet18_{e + 1}.model")
+
+    if testing_loss <= min(testing_losses):
+        torch.save(model.state_dict(), "results/models/cifar10_resnet18.model")

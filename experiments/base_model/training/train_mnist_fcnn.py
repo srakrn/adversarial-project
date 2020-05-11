@@ -57,4 +57,4 @@ for e in range(epochs):
     else:
         print(f"Training loss: {running_loss/len(trainloader)}")
 
-torch.save(model.state_dict(), "models/mnist_fcnn.model")
+torch.save(model.state_dict(), "results/models/mnist_fcnn.model")

@@ -58,5 +58,6 @@ for e in range(epochs):
         testing_loss /= len(testloader)
         testing_losses.append(testing_loss)
     print(f"Epoch: {e}\n\tTrain: {training_loss} Test: {testing_loss}")
+
     if testing_loss <= min(testing_losses):
-        torch.save(model.state_dict(), "models/mnist_resnet18.model")
+        torch.save(model.state_dict(), "results/models/mnist_resnet18.model")
