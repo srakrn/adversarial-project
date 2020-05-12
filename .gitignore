@@ -121,5 +121,6 @@ temp
 /tensorboard
 /perturbs
 /results
+*.model
 bfg-1.13.0.jar
 logs
