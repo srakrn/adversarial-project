@@ -306,7 +306,7 @@ def fgsm_single_point(model, criterion, images, labels, epsilon=0.3, cuda=False)
     Returns
     -------
     torch.tensor
-        A tensor containing perturbations, with the shape of `images.shape[1:]`
+        An attacked version of 
     """
     model.eval()
 
