@@ -16,6 +16,10 @@ def fgsm_single_image(model, criterion, image, label, epsilon=0.03, cuda=False):
         model.to("cuda")
         image = image.to("cuda")
         label = label.to("cuda")
+    else:
+        model.to("cpu")
+        image = image.to("cpu")
+        label = label.to("cpu")
 
     image.requires_grad = True
 
