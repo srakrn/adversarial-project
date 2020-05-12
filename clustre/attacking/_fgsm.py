@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 
-def fgsm_single_image(model, criterion, image, label, epsilon=0.03, cuda=False):
+def fgsm(model, criterion, image, label, epsilon=0.03, cuda=False):
     if len(image.shape) == 3:
         image.unsqueeze_(0)
         label.unsqueeze_(0)
@@ -27,16 +27,7 @@ def fgsm_single_image(model, criterion, image, label, epsilon=0.03, cuda=False):
     loss = criterion(output, label)
     loss.backward()
 
-    perturb = image.grad.data[0].sign().unsqueeze_(0) * epsilon
+    perturb = image.grad.data.sign() * epsilon
     attack_image = torch.clamp(image + perturb, min=-1, max=1)
 
     return attack_image
-
-
-def fgsm(model, criterion, images, labels, epsilon=0.03, cuda=False):
-    return torch.cat(
-        [
-            fgsm_single_image(model, criterion, i, j, epsilon, cuda)
-            for (i, j) in zip(images, labels)
-        ]
-    )

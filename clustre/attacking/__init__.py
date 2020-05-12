@@ -1,1 +1,2 @@
-from clustre.attacking._fgsm import fgsm, fgsm_single_image
+from clustre.attacking._fgsm import fgsm
+from clustre.attacking._pgd import pgd

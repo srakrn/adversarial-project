@@ -6,7 +6,7 @@ import torch
 from torch import nn
 
 # %%
-from clustre.attacking import fgsm
+from clustre.attacking import pgd
 from clustre.helpers.datasets import mnist_testloader
 from clustre.models import mnist_cnn
 from clustre.models.state_dicts import mnist_cnn_state
@@ -21,14 +21,17 @@ point_X, point_y = batch_X[0], batch_y[0]
 batchpoint_X, batchpoint_y = batch_X[0:1], batch_y[0:1]
 
 # %%
-class TestFgsm(unittest.TestCase):
-    def test_fgsm_shape(self):
-        result = fgsm(mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y)
-        self.assertTupleEqual(result.shape, batch_X.shape)
+results = pgd(mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y, n_epoches=100)
 
-    def test_fgsm_range(self):
-        result = fgsm(mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y)
-        return ((result >= -1) & (result <= 1)).all()
+# %%
+class TestPgd(unittest.TestCase):
+    def test_pgd_shape(self):
+        results = pgd(mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y)
+        self.assertTupleEqual(results.shape, batch_X.shape)
+
+    def test_pgd_range(self):
+        results = pgd(mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y)
+        return ((results >= -1) & (results <= 1)).all()
 
 
 # %%
