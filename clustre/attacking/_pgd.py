@@ -16,18 +16,14 @@ def pgd(
     step_size=0.02,
     n_epoches=100,
     verbose=True,
-    cuda=False,
+    device=None,
 ):
     model.eval()
 
-    if cuda:
-        model.to("cuda")
-        images = images.to("cuda")
-        labels = labels.to("cuda")
-    else:
-        model.to("cpu")
-        images = images.to("cpu")
-        labels = labels.to("cpu")
+    if device is not None:
+        model = model.to(device)
+        images = images.to(device)
+        labels = labels.to(device)
 
     original_images = images
 

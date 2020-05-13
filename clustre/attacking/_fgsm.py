@@ -5,21 +5,17 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 
-def fgsm(model, criterion, image, label, epsilon=0.03, cuda=False):
+def fgsm(model, criterion, image, label, epsilon=0.03, device=None):
     if len(image.shape) == 3:
         image.unsqueeze_(0)
         label.unsqueeze_(0)
 
     model.eval()
 
-    if cuda:
-        model.to("cuda")
-        image = image.to("cuda")
-        label = label.to("cuda")
-    else:
-        model.to("cpu")
-        image = image.to("cpu")
-        label = label.to("cpu")
+    if device is not None:
+        model.to(device)
+        image = image.to(device)
+        label = label.to(device)
 
     image.requires_grad = True
 
