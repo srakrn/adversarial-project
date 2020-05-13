@@ -97,6 +97,8 @@ def pgd_training(
 
             running_loss += loss.item()
         else:
-            log.info(f"\tTraining loss: {running_loss/len(trainloader)}")
-    log.info(f"Training ended: {get_time()}")
+            if log is not None:
+                log.info(f"\tTraining loss: {running_loss/len(trainloader)}")
+    if log is not None:
+        log.info(f"Training ended: {get_time()}")
     return model
