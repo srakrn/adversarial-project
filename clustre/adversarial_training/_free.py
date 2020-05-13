@@ -97,7 +97,8 @@ def free_training(
 
                 # Use gradients calculated for the minimisation step to update delta
                 perturbs = epsilon * delta.grad.data.sign()
-                delta = torch.clamp(delta, min=-epsilon, max=epsilon)
+                delta = torch.clamp(delta, min=-epsilon, max=epsilon).detach()
+                delta.requires_grad = True
 
             running_loss += loss.item()
         else:
