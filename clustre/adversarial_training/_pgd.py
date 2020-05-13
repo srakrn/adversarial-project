@@ -13,7 +13,7 @@ from clustre.attacking import pgd
 from clustre.helpers import get_time
 
 
-def pgd_reinforce(
+def pgd_training(
     model,
     trainloader,
     n_epoches=10,
