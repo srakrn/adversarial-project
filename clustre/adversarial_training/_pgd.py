@@ -10,7 +10,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
 from clustre.attacking import pgd
-from clustre.helpers.helpers import get_time
+from clustre.helpers import get_time
 
 
 def pgd_reinforce(
@@ -68,11 +68,11 @@ def pgd_reinforce(
     for e in range(n_epoches):
         # Running loss, for reference
         running_loss = 0
+        # Log epoches
+        if log is not None:
+            log.info(f"\t{get_time()}: Epoch {e+1}")
         # Iterate over minibatches of trainloader
         for i, (images, labels) in enumerate(trainloader):
-            # Log epoches
-            if log is not None:
-                log.info(f"\t{get_time()}: Epoch {e+1} Minibatch {i+1}")
             # Move tensors to device if desired
             if device is not None:
                 images = images.to(device)
@@ -97,6 +97,6 @@ def pgd_reinforce(
 
             running_loss += loss.item()
         else:
-            print(f"\tTraining loss: {running_loss/len(trainloader)}")
+            log.info(f"\tTraining loss: {running_loss/len(trainloader)}")
     log.info(f"Training ended: {get_time()}")
     return model
