@@ -1,5 +1,3 @@
-# %%
-import logging
 import os
 import time
 
@@ -14,8 +12,6 @@ from torch.utils.data import DataLoader, Dataset
 from clustre.attacking.on_single_point import attack
 from clustre.helpers.helpers import get_time
 
-log = logging.getLogger(__name__)
-
 
 def pgd_reinforce(
     model,
@@ -26,7 +22,16 @@ def pgd_reinforce(
     criterion=nn.CrossEntropyLoss,
     optimizer=optim.Adam,
     cuda=False,
+    log=None,
 ):
+    """Standard k-PGD Adversarial Training
+
+    Parameters
+    ----------
+    model: torch.nn.model
+        The model to be reinforced
+    
+    """
     if cuda:
         model.to("cuda")
     else:
