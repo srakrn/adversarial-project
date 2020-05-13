@@ -20,8 +20,11 @@ batch_X, batch_y = batch
 point_X, point_y = batch_X[0], batch_y[0]
 batchpoint_X, batchpoint_y = batch_X[0:1], batch_y[0:1]
 
+
 # %%
-results = pgd(mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y, n_epoches=100)
+batch_X_cuda, batch_y_cuda = batch_X.to("cuda"), batch_y.to("cuda")
+point_X_cuda, point_y_cuda = batch_X_cuda[0], batch_y_cuda[0]
+batchpoint_X_cuda, batchpoint_y_cuda = batch_X_cuda[0:1], batch_y_cuda[0:1]
 
 # %%
 class TestPgd(unittest.TestCase):
@@ -31,7 +34,36 @@ class TestPgd(unittest.TestCase):
 
     def test_pgd_range(self):
         results = pgd(mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y)
-        return ((results >= -1) & (results <= 1)).all()
+        self.assertTrue(((results >= -1) & (results <= 1)).all())
+
+
+class TestPgdCuda(unittest.TestCase):
+    def test_pgd_shape(self):
+        mnist_cnn.to("cuda")
+        results = pgd(mnist_cnn, nn.CrossEntropyLoss(), batch_X_cuda, batch_y_cuda)
+        self.assertTupleEqual(results.shape, batch_X.shape)
+
+    def test_pgd_range(self):
+        mnist_cnn.to("cuda")
+        results = pgd(mnist_cnn, nn.CrossEntropyLoss(), batch_X_cuda, batch_y_cuda)
+        self.assertTrue(((results >= -1) & (results <= 1)).all())
+
+    def test_cuda(self):
+        mnist_cnn.to("cuda")
+        results = pgd(mnist_cnn, nn.CrossEntropyLoss(), batch_X_cuda, batch_y_cuda)
+        self.assertTrue(results.is_cuda)
+
+    def test_force_cpu(self):
+        mnist_cnn.to("cuda")
+        results = pgd(
+            mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y_cuda, device="cpu"
+        )
+
+    def test_force_cuda(self):
+        mnist_cnn.to("cuda")
+        results = pgd(
+            mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y_cuda, device="cuda"
+        )
 
 
 # %%
