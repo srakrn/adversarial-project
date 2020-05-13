@@ -9,7 +9,7 @@ from sklearn.metrics import classification_report
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
-from clustre.attacking.on_single_point import attack
+from clustre.attacking import pgd
 from clustre.helpers.helpers import get_time
 
 
@@ -18,10 +18,12 @@ def pgd_reinforce(
     trainloader,
     n_epoches=10,
     epsilon=0.3,
-    pgd_epoches=40,
-    criterion=nn.CrossEntropyLoss,
+    pgd_step_size=0.02,
+    pgd_epoches=100,
+    criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
-    cuda=False,
+    optimizer_params={},
+    device=None,
     log=None,
 ):
     """Standard k-PGD Adversarial Training
@@ -30,39 +32,66 @@ def pgd_reinforce(
     ----------
     model: torch.nn.model
         The model to be reinforced
-    
+    trainloader: torch.utils.data.DataLoader
+        The DataLoader for the training set
+    n_epoches: int
+        The epoches to be trained
+    epsilon: float
+        Perturbation bound
+    pgd_step_size: float
+        PGD step size
+    pgd_epoches: int
+        PGD maximization iterations per minimisation step
+    criterion: function
+        Criterion function
+    optimizer: class of torch.optim
+        Optimiser to train the model
+    optimizer_params: dict
+        Parameters to be passed to the optimiser
+    device: torch.device, str, or None
+        Device to be used
+    log: logger or None
+        If logger, logs to the corresponding logger
     """
-    if cuda:
-        model.to("cuda")
-    else:
-        model.to("cpu")
-    log.info(f"Training started: {get_time()}")
-    criterion = criterion()
-    optimizer = optimizer(model.parameters())
+
+    # Move to device if desired
+    if device is not None:
+        model.to(device)
+    # Log starting time if desired
+    if log is not None:
+        log.info(f"Training started: {get_time()}")
+
+    # Create an optimiser instance
+    optimizer = optimizer(model.parameters(), **optimizer_params)
+
+    # Iterate over e times of epoches
     for e in range(n_epoches):
+        # Running loss, for reference
         running_loss = 0
+        # Iterate over minibatches of trainloader
         for i, (images, labels) in enumerate(trainloader):
-            print(f"Epoch {e+1} Minibatch {i+1}")
-            if cuda:
-                images = images.to("cuda")
-                labels = labels.to("cuda")
-
-            perturbs = attack.pgd_array(
-                model, criterion, images, labels, n_epoches=pgd_epoches, cuda=cuda
+            # Log epoches
+            if log is not None:
+                log.info(f"\t{get_time()}: Epoch {e+1} Minibatch {i+1}")
+            # Move tensors to device if desired
+            if device is not None:
+                images = images.to(device)
+                labels = labels.to(device)
+            # Calculate perturbations
+            adver_images = pgd(
+                model,
+                criterion,
+                images,
+                labels,
+                epsilon,
+                pgd_step_size,
+                pgd_epoches,
+                device=device,
             )
-            if cuda and not perturbs.is_cuda:
-                perturbs = perturbs.to("cuda")
-            adver_images = images + epsilon * perturbs
-            X = torch.cat([images, adver_images], 0)
-            y = torch.cat([labels, labels], 0)
-            if cuda:
-                X = X.to("cuda")
-                y = y.to("cuda")
-
             optimizer.zero_grad()
 
-            output = F.log_softmax(model(X), dim=1)
-            loss = criterion(output, y)
+            output = model(adver_images)
+            loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
 
