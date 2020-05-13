@@ -1,1 +1,2 @@
-from clustre.adversarial_training._pgd import pgd_reinforce
+from clustre.adversarial_training._fgsm import fgsm_training
+from clustre.adversarial_training._pgd import pgd_training
