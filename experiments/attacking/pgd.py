@@ -63,5 +63,5 @@ for model_name, (model, _, testloader) in models.items():
 
 # %%
 for model_name, (model, _, testloader) in models.items():
-    logging.info(f"PGD nattacked {model_name}")
+    logging.info(f"PGD attacked {model_name}")
     logging.info(classification_report_pgd(model, testloader, device="cuda"))
