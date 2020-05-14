@@ -123,4 +123,4 @@ temp
 /results
 *.model
 bfg-1.13.0.jar
-logs
+*_log.txt
