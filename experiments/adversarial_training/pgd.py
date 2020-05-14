@@ -56,34 +56,19 @@ models = {
     "MNIST ResNet": [mnist_resnet, mnist_trainloader, mnist_testloader],
     "CIFAR-10 CNN": [cifar10_cnn, cifar10_trainloader, cifar10_testloader],
     "CIFAR-10 ResNet": [cifar10_resnet, cifar10_trainloader, cifar10_testloader],
-    "CIFAR-10 Wide ResNet": [
-        cifar10_wideresnet,
-        cifar10_trainloader,
-        cifar10_testloader,
-    ],
 }
 
 new_models = {}
 
 # %%
-for model_name, (model, trainloader, _) in models.items():
+for model_name, (model, trainloader, testloader) in models.items():
     logging.info(f"Training {model_name}")
     new_model = pgd_training(model, trainloader, device="cuda", log=log)
     new_models[model_name] = new_model
-    torch.save(model.state_dict(), os.path.join(SCRIPT_PATH, f"{model_name}.model"))
+    torch.save(model.state_dict(), os.path.join(SCRIPT_PATH, f"PGD {model_name}.model"))
 
-# %%
-for model_name, (_, _, testloader) in models.items():
-    model = new_models[model_name]
-    logging.info(f"Unattacked {model_name}")
-    logging.info(classification_report(model, testloader))
-
-for model_name, (_, _, testloader) in models.items():
-    model = new_models[model_name]
     logging.info(f"FGSM attacked {model_name}")
-    logging.info(classification_report_fgsm(model, testloader))
+    logging.info(classification_report_fgsm(model, testloader, device="cuda"))
 
-for model_name, (_, _, testloader) in models.items():
-    model = new_models[model_name]
     logging.info(f"PGD attacked {model_name}")
-    logging.info(classification_report_pgd(model, testloader))
+    logging.info(classification_report_pgd(model, testloader, device="cuda"))
