@@ -6,7 +6,6 @@ import sys
 import torch
 from torch import nn, optim
 
-from clustre.adversarial_training import fgsm_training
 from clustre.helpers.datasets import (
     cifar10_testloader,
     cifar10_trainloader,
