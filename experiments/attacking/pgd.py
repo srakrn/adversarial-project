@@ -6,14 +6,14 @@ import sys
 import torch
 from torch import nn, optim
 
-from clustre.adversarial_training import fgsm_training
+from clustre.adversarial_training import pgd_training
 from clustre.helpers.datasets import (
     cifar10_testloader,
     cifar10_trainloader,
     mnist_testloader,
     mnist_trainloader,
 )
-from clustre.helpers.metrics import classification_report, classification_report_fgsm
+from clustre.helpers.metrics import classification_report, classification_report_pgd
 from clustre.models import (
     cifar10_cnn,
     cifar10_resnet,
@@ -64,5 +64,5 @@ for model_name, (model, _, testloader) in models.items():
 
 # %%
 for model_name, (model, _, testloader) in models.items():
-    logging.info(f"FGSM attacked {model_name}")
-    logging.info(classification_report_fgsm(model, testloader))
+    logging.info(f"PGD nattacked {model_name}")
+    logging.info(classification_report_pgd(model, testloader))
