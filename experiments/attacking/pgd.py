@@ -59,7 +59,7 @@ models = {
 # %%
 for model_name, (model, _, testloader) in models.items():
     logging.info(f"Unattacked {model_name}")
-    logging.info(classification_report(model, testloader))
+    logging.info(classification_report(model, testloader, device="cuda"))
 
 # %%
 for model_name, (model, _, testloader) in models.items():
