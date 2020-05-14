@@ -6,6 +6,8 @@ from clustre.attacking import fgsm, pgd
 
 
 def classification_report(model, testloader, device=None):
+    if device is not None:
+        model.to(device)
     y_true = []
     y_pred = []
     for (images, labels) in testloader:
@@ -22,6 +24,8 @@ def classification_report(model, testloader, device=None):
 
 
 def classification_report_fgsm(model, testloader, device=None, fgsm_params={}):
+    if device is not None:
+        model.to(device)
     y_true = []
     y_pred = []
     for (images, labels) in testloader:
@@ -41,6 +45,8 @@ def classification_report_fgsm(model, testloader, device=None, fgsm_params={}):
 
 
 def classification_report_pgd(model, testloader, device=None, pgd_params={}):
+    if device is not None:
+        model.to(device)
     y_true = []
     y_pred = []
     for (images, labels) in testloader:
