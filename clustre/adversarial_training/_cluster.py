@@ -4,7 +4,7 @@ import time
 import numpy as np
 import torch
 import torch.nn.functional as F
-from sklearn.cluster import KMeans
+from kmeans_pytorch import kmeans
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
@@ -23,7 +23,7 @@ def cluster_training(
     optimizer=optim.Adam,
     optimizer_params={},
     fgsm_parameters={},
-    kmeans_parameters={"n_init": 1, "init": "random"},
+    kmeans_parameters={"distance": "euclidian"},
     pgd_parameters={},
     device=None,
     log=None,
@@ -53,27 +53,26 @@ def cluster_training(
             if device is not None:
                 images = images.to(device)
                 labels = labels.to(device)
-            # Calculate perturbations
-            fgsm_adver_images = fgsm(
-                model,
-                criterion,
-                images,
-                labels,
-                epsilon,
-                device=device,
-                **fgsm_parameters,
+            cluster_input = images.reshape(len(images), -1)
+            cluster_idxs, cluster_centres, = kmeans(
+                X=cluster_input, num_clusters=n_clusters, device=device,
             )
-            # Cluster adversarial images
-            np_adver_images = (
-                fgsm_adver_images.cpu()
+            cluster_centres = cluster_centres.to(device)
+            kmeans_dist = torch.max(
+                torch.norm(
+                    cluster_centres[:, None, :].repeat(1, len(images), 1)
+                    - cluster_input[None, :],
+                    dim=2,
+                ),
+                dim=0,
+            ).values
+            kmeans_inverse_dist = 1 / (kmeans_dist + 1e-4)
+            kmeans_prob = (
+                (torch.exp(kmeans_inverse_dist) / sum(torch.exp(kmeans_inverse_dist)))
+                .cpu()
                 .detach()
                 .numpy()
-                .reshape(len(fgsm_adver_images), -1)
             )
-            kmeans = KMeans(n_clusters=n_clusters, **kmeans_parameters)
-            kmeans_dist = kmeans.fit_transform(np_adver_images).max(axis=1)
-            kmeans_inverse_dist = 1 / (kmeans_dist + 1e-3)
-            kmeans_prob = np.exp(kmeans_inverse_dist) / sum(np.exp(kmeans_inverse_dist))
             # Downsample the k-meaned images (according to ratio)
             idx = np.random.choice(
                 np.arange(len(kmeans_prob)),
