@@ -12,7 +12,7 @@ from clustre.attacking import fgsm, pgd
 from clustre.helpers import get_time
 
 
-def fgsm_training(
+def cluster_training(
     model,
     trainloader,
     n_epoches=10,
@@ -23,7 +23,7 @@ def fgsm_training(
     optimizer=optim.Adam,
     optimizer_params={},
     fgsm_parameters={},
-    kmeans_parameters={},
+    kmeans_parameters={"n_init": 1, "init": "random"},
     pgd_parameters={},
     device=None,
     log=None,
@@ -47,6 +47,8 @@ def fgsm_training(
             log.info(f"\t{get_time()}: Epoch {e+1}")
         # Iterate over minibatches of trainloader
         for i, (images, labels) in enumerate(trainloader):
+            if log is not None and i % 10 == 9:
+                log.info(f"\t\t{get_time()}: Minibatch {i+1}")
             # Move tensors to device if desired
             if device is not None:
                 images = images.to(device)
@@ -62,15 +64,20 @@ def fgsm_training(
                 **fgsm_parameters,
             )
             # Cluster adversarial images
-            np_adver_images = fgsm_adver_images.cpu().detach().numpy()
-            kmeans = KMeans(n_clusters=n_clusters)
-            kmeans_dist = kmeans.fit_transform(np_adver_images, **kmeans_parameters)
+            np_adver_images = (
+                fgsm_adver_images.cpu()
+                .detach()
+                .numpy()
+                .reshape(len(fgsm_adver_images), -1)
+            )
+            kmeans = KMeans(n_clusters=n_clusters, **kmeans_parameters)
+            kmeans_dist = kmeans.fit_transform(np_adver_images).max(axis=1)
             kmeans_inverse_dist = 1 / (kmeans_dist + 1e-3)
             kmeans_prob = np.exp(kmeans_inverse_dist) / sum(np.exp(kmeans_inverse_dist))
             # Downsample the k-meaned images (according to ratio)
             idx = np.random.choice(
-                np.arange(len(trainloader)),
-                size=int(len(trainloader) * sample_ratio),
+                np.arange(len(kmeans_prob)),
+                size=int(len(kmeans_prob) * sample_ratio),
                 p=kmeans_prob,
             )
             images_subset, labels_subset = images[idx], labels[idx]
