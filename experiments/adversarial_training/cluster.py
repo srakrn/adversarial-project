@@ -36,7 +36,7 @@ from clustre.models.state_dicts import (
 )
 
 # %%
-DEVICE = torch.cuda.device(1)
+DEVICE = "cuda"
 LOG_FILENAME = os.path.abspath(__file__)[:-3] + "_log.txt"
 SCRIPT_PATH = os.path.dirname(__file__)
 FORMAT = "%(message)s"
