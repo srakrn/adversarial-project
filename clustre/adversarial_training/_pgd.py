@@ -19,7 +19,7 @@ def pgd_training(
     n_epoches=10,
     epsilon=0.3,
     pgd_step_size=0.02,
-    pgd_epoches=100,
+    pgd_epoches=7,
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
     optimizer_params={},
