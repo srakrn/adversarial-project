@@ -81,7 +81,7 @@ def cluster_training(
     pgd_step_size=0.02,
     fgsm_parameters={},
     kmeans_parameters={"n_init": 3},
-    pgd_parameters={},
+    pgd_parameters={"n_epoches": 7},
     device=None,
     log=None,
 ):
@@ -118,7 +118,7 @@ def cluster_training(
             centroids_y,
             epsilon=epsilon,
             step_size=pgd_step_size,
-            n_epoches=n_epoches,
+            **pgd_parameters,
         )
         # Running loss, for reference
         running_loss = 0
