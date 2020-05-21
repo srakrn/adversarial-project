@@ -33,7 +33,12 @@ def classification_report_fgsm(model, testloader, device=None, fgsm_params={}):
             images = images.to(device)
             labels = labels.to(device)
         attacked_images = fgsm(
-            model, nn.CrossEntropyLoss(), images, labels, device=device, **fgsm_params
+            model,
+            nn.CrossEntropyLoss(),
+            images,
+            labels,
+            device=device,
+            **fgsm_params
         )
         y_true.append(labels)
         y_pred.append(model(attacked_images))
@@ -54,7 +59,12 @@ def classification_report_pgd(model, testloader, device=None, pgd_params={}):
             images = images.to(device)
             labels = labels.to(device)
         attacked_images = pgd(
-            model, nn.CrossEntropyLoss(), images, labels, device=device, **pgd_params
+            model,
+            nn.CrossEntropyLoss(),
+            images,
+            labels,
+            device=device,
+            **pgd_params
         )
         y_true.append(labels)
         y_pred.append(model(attacked_images))
