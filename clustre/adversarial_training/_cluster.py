@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from sklearn.cluster import KMeans
 from torch import nn, optim
@@ -19,6 +20,7 @@ class AdversarialDataset(Dataset):
         criterion=nn.CrossEntropyLoss(),
         density=0.3,
         n_clusters=100,
+        ratio=0.4,
         kmeans_parameters={},
         pgd_parameters={},
         transform=None,
@@ -37,7 +39,11 @@ class AdversarialDataset(Dataset):
         self.km.fit(d)
         # Obtain targets and ids of each cluster centres
         self.cluster_ids = self.km.predict(d)
-        self.cluster_centers_idx = self.km.transform(d).argmin(axis=0)
+        self.nearest_cluster_dist = self.km.transform(d).min(axis=1)
+        n_items = int(len(d) * ratio)
+        self.cluster_centers_idx = np.argpartition(
+            self.nearest_cluster_dist, n_items
+        )[:n_items]
 
         # Extract only interested ones
         X = []
@@ -67,7 +73,7 @@ def cluster_training(
     trainloader,
     n_epoches=10,
     n_clusters=100,
-    sample_ratio=0.5,
+    sample_ratio=0.1,
     epsilon=0.3,
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
