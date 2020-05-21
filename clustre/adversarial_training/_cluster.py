@@ -1,33 +1,93 @@
-import os
-import time
-
-import numpy as np
 import torch
-import torch.nn.functional as F
-from kmeans_pytorch import kmeans
+from sklearn.cluster import KMeans
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
-from clustre.attacking import fgsm, pgd
+from clustre.attacking import pgd_perturbs
 from clustre.helpers import get_time
+
+
+class AdversarialDataset(Dataset):
+    """
+    Adversarial dataset to be feeded to the model
+    """
+
+    def __init__(
+        self,
+        model,
+        dataset,
+        criterion=nn.CrossEntropyLoss(),
+        density=0.3,
+        n_clusters=100,
+        kmeans_parameters={},
+        pgd_parameters={},
+        transform=None,
+    ):
+        # Initialise things
+        super().__init__()
+        self.model = model
+        self.dataset = dataset
+        self.criterion = criterion
+        self.density = density
+        self.transform = transform
+
+        # Create a k-Means instance and fit
+        d = self.dataset.data.reshape(len(dataset), -1)
+        self.km = KMeans(n_clusters=n_clusters, **kmeans_parameters)
+        self.km.fit(d)
+        # Obtain targets and ids of each cluster centres
+        self.cluster_ids = self.km.predict(d)
+        self.cluster_centers_idx = self.km.transform(d).argmin(axis=0)
+
+        # Extract only interested ones
+        X = []
+        y = []
+        for i in self.cluster_centers_idx:
+            x, u = self.dataset[i]
+            X.append(x)
+            y.append(u)
+
+        # To be used in PGD
+        self.centroids_X = torch.stack(X)
+        self.centroids_y = torch.Tensor(
+            y, device=self.centroids_X.device
+        ).long()
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        image, target = self.dataset[idx]
+        cluster_id = self.cluster_ids[idx]
+        return image, target, cluster_id
 
 
 def cluster_training(
     model,
     trainloader,
     n_epoches=10,
-    n_clusters=8,
+    n_clusters=100,
     sample_ratio=0.5,
     epsilon=0.3,
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
     optimizer_params={},
+    pgd_step_size=0.02,
     fgsm_parameters={},
-    kmeans_parameters={"distance": "euclidian"},
+    kmeans_parameters={"n_init": 3},
     pgd_parameters={},
     device=None,
     log=None,
 ):
+    if log is not None:
+        log.info(f"k-Means started: {get_time()}")
+    adversarial_dataset = AdversarialDataset(
+        model, trainloader.dataset, transform=trainloader.dataset.transform,
+    )
+    adversarialloader = DataLoader(adversarial_dataset, batch_size=128)
+    if log is not None:
+        log.info(f"k-Means ended: {get_time()}")
+
     # Move to device if desired
     if device is not None:
         model.to(device)
@@ -38,55 +98,41 @@ def cluster_training(
     # Create an optimiser instance
     optimizer = optimizer(model.parameters(), **optimizer_params)
 
+    if device is not None:
+        centroids_X = adversarial_dataset.centroids_X.to(device)
+        centroids_y = adversarial_dataset.centroids_y.to(device)
+
     # Iterate over e times of epoches
     for e in range(n_epoches):
+        # Generate PGD examples
+        cluster_perturbs = pgd_perturbs(
+            model,
+            criterion,
+            centroids_X,
+            centroids_y,
+            epsilon=epsilon,
+            step_size=pgd_step_size,
+            n_epoches=n_epoches,
+        )
         # Running loss, for reference
         running_loss = 0
         # Log epoches
         if log is not None:
             log.info(f"\t{get_time()}: Epoch {e+1}")
         # Iterate over minibatches of trainloader
-        for i, (images, labels) in enumerate(trainloader):
-            if log is not None and i % 10 == 9:
-                log.info(f"\t\t{get_time()}: Minibatch {i+1}")
+        for i, (images, labels, cluster_idx) in enumerate(adversarialloader):
             # Move tensors to device if desired
             if device is not None:
                 images = images.to(device)
                 labels = labels.to(device)
-            cluster_input = images.reshape(len(images), -1)
-            cluster_idxs, cluster_centres, = kmeans(
-                X=cluster_input, num_clusters=n_clusters, device=device,
-            )
-            cluster_centres = cluster_centres.to(device)
-            kmeans_dist = torch.max(
-                torch.norm(
-                    cluster_centres[:, None, :].repeat(1, len(images), 1)
-                    - cluster_input[None, :],
-                    dim=2,
-                ),
-                dim=0,
-            ).values
-            kmeans_inverse_dist = 1 / (kmeans_dist + 1e-4)
-            kmeans_prob = (
-                (torch.exp(kmeans_inverse_dist) / sum(torch.exp(kmeans_inverse_dist)))
-                .cpu()
-                .detach()
-                .numpy()
-            )
-            # Downsample the k-meaned images (according to ratio)
-            idx = np.random.choice(
-                np.arange(len(kmeans_prob)),
-                size=int(len(kmeans_prob) * sample_ratio),
-                p=kmeans_prob,
-            )
-            images_subset, labels_subset = images[idx], labels[idx]
-            pgd_adver_images_subset = pgd(
-                model, criterion, images_subset, labels_subset, **pgd_parameters
-            )
+                cluster_perturbs = cluster_perturbs.to(device)
             optimizer.zero_grad()
 
-            output = model(pgd_adver_images_subset)
-            loss = criterion(output, labels_subset)
+            output = model(
+                images
+                + cluster_perturbs[cluster_idx.numpy()].reshape(images.shape)
+            )
+            loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
 
