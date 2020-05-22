@@ -53,6 +53,11 @@ cifar10_wideresnet.load_state_dict(cifar10_wideresnet_state)
 
 models = {
     "MNIST ResNet": [mnist_resnet, mnist_trainloader, mnist_testloader],
+    "CIFAR-10 ResNet": [
+        cifar10_resnet,
+        cifar10_trainloader,
+        cifar10_testloader,
+    ],
 }
 
 new_models = {}
