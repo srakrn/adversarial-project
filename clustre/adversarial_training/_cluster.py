@@ -108,7 +108,7 @@ def cluster_training(
             log.info(f"\tEpoch {e+1}")
         # Log epoches
         if log is not None:
-            log.info(f"\t\tGenerating PGD at {get_time()}{e+1}")
+            log.info(f"\t\tGenerating PGD at {get_time()}")
         # Generate PGD examples
         cluster_perturbs = pgd_perturbs(
             model,
@@ -119,7 +119,7 @@ def cluster_training(
             **pgd_parameters,
         )
         if log is not None:
-            log.info(f"\t\tBackproping PGD at {get_time()}{e+1}")
+            log.info(f"\t\tBackproping PGD at {get_time()}")
         # Running loss, for reference
         running_loss = 0
         # Iterate over minibatches of trainloader
