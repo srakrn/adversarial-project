@@ -51,11 +51,12 @@ cifar10_resnet.load_state_dict(cifar10_resnet_state)
 cifar10_wideresnet.load_state_dict(cifar10_wideresnet_state)
 
 models = {
-    "MNIST FCNN": [mnist_fcnn, mnist_trainloader, mnist_testloader],
-    "MNIST CNN": [mnist_cnn, mnist_trainloader, mnist_testloader],
     "MNIST ResNet": [mnist_resnet, mnist_trainloader, mnist_testloader],
-    "CIFAR-10 CNN": [cifar10_cnn, cifar10_trainloader, cifar10_testloader],
-    "CIFAR-10 ResNet": [cifar10_resnet, cifar10_trainloader, cifar10_testloader],
+    "CIFAR-10 ResNet": [
+        cifar10_resnet,
+        cifar10_trainloader,
+        cifar10_testloader,
+    ],
 }
 
 new_models = {}
@@ -65,7 +66,10 @@ for model_name, (model, trainloader, testloader) in models.items():
     logging.info(f"Training {model_name}")
     new_model = pgd_training(model, trainloader, device="cuda", log=log)
     new_models[model_name] = new_model
-    torch.save(model.state_dict(), os.path.join(SCRIPT_PATH, f"PGD {model_name}.model"))
+    torch.save(
+        model.state_dict(),
+        os.path.join(SCRIPT_PATH, f"PGD {model_name}.model"),
+    )
 
     logging.info(f"FGSM attacked {model_name}")
     logging.info(classification_report_fgsm(model, testloader, device="cuda"))
