@@ -67,7 +67,6 @@ def cluster_training(
     trainloader,
     n_epoches=10,
     n_clusters=100,
-    sample_ratio=0.5,
     epsilon=0.3,
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
@@ -75,7 +74,7 @@ def cluster_training(
     pgd_step_size=0.02,
     fgsm_parameters={},
     kmeans_parameters={"n_init": 3},
-    pgd_parameters={},
+    pgd_parameters={"n_epoches": 7},
     device=None,
     log=None,
 ):
