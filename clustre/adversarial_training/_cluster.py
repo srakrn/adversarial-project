@@ -103,6 +103,12 @@ def cluster_training(
 
     # Iterate over e times of epoches
     for e in range(n_epoches):
+        # Log epoches
+        if log is not None:
+            log.info(f"\tEpoch {e+1}")
+        # Log epoches
+        if log is not None:
+            log.info(f"\t\tGenerating PGD at {get_time()}{e+1}")
         # Generate PGD examples
         cluster_perturbs = pgd_perturbs(
             model,
@@ -112,11 +118,10 @@ def cluster_training(
             epsilon=epsilon,
             **pgd_parameters,
         )
+        if log is not None:
+            log.info(f"\t\tBackproping PGD at {get_time()}{e+1}")
         # Running loss, for reference
         running_loss = 0
-        # Log epoches
-        if log is not None:
-            log.info(f"\t{get_time()}: Epoch {e+1}")
         # Iterate over minibatches of trainloader
         for i, (images, labels, cluster_idx) in enumerate(adversarialloader):
             # Move tensors to device if desired
@@ -137,6 +142,7 @@ def cluster_training(
             running_loss += loss.item()
         else:
             if log is not None:
+                log.info(f"\t\tFinished this epoch at {get_time()}")
                 log.info(f"\tTraining loss: {running_loss/len(trainloader)}")
     if log is not None:
         log.info(f"Training ended: {get_time()}")
