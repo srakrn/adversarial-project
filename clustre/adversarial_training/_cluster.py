@@ -68,7 +68,6 @@ def cluster_training(
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
     optimizer_params={},
-    pgd_step_size=0.02,
     kmeans_parameters={"n_init": 3},
     pgd_parameters={"n_epoches": 7},
     device=None,
@@ -111,8 +110,6 @@ def cluster_training(
             centroids_X,
             centroids_y,
             epsilon=epsilon,
-            step_size=pgd_step_size,
-            n_epoches=n_epoches,
             **pgd_parameters,
         )
         # Running loss, for reference
