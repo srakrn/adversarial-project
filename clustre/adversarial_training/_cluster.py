@@ -74,7 +74,6 @@ def cluster_training(
     device=None,
     log=None,
 ):
-    print(n_clusters)
     if log is not None:
         log.info(f"k-Means started: {get_time()}")
     adversarial_dataset = AdversarialDataset(
