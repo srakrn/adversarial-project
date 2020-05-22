@@ -61,6 +61,19 @@ params = [
     {"n_clusters": 100},
     {"n_clusters": 500},
     {"n_clusters": 1000},
+    {"n_clusters": 5000},
+    {"n_clusters": 10},
+    {"n_clusters": 50},
+    {"n_clusters": 100},
+    {"n_clusters": 500},
+    {"n_clusters": 1000},
+    {"n_clusters": 5000},
+    {"n_clusters": 10},
+    {"n_clusters": 50},
+    {"n_clusters": 100},
+    {"n_clusters": 500},
+    {"n_clusters": 1000},
+    {"n_clusters": 5000},
 ]
 
 new_models = {}
