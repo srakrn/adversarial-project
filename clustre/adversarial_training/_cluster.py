@@ -17,10 +17,8 @@ class AdversarialDataset(Dataset):
         model,
         dataset,
         criterion=nn.CrossEntropyLoss(),
-        density=0.3,
         n_clusters=100,
         kmeans_parameters={},
-        pgd_parameters={},
         transform=None,
     ):
         # Initialise things
@@ -28,7 +26,6 @@ class AdversarialDataset(Dataset):
         self.model = model
         self.dataset = dataset
         self.criterion = criterion
-        self.density = density
         self.transform = transform
 
         # Create a k-Means instance and fit
@@ -72,16 +69,21 @@ def cluster_training(
     optimizer=optim.Adam,
     optimizer_params={},
     pgd_step_size=0.02,
-    fgsm_parameters={},
     kmeans_parameters={"n_init": 3},
     pgd_parameters={"n_epoches": 7},
     device=None,
     log=None,
 ):
+    print(n_clusters)
     if log is not None:
         log.info(f"k-Means started: {get_time()}")
     adversarial_dataset = AdversarialDataset(
-        model, trainloader.dataset, transform=trainloader.dataset.transform,
+        model,
+        trainloader.dataset,
+        criterion=criterion,
+        n_clusters=n_clusters,
+        kmeans_parameters=kmeans_parameters,
+        transform=trainloader.dataset.transform,
     )
     adversarialloader = DataLoader(adversarial_dataset, batch_size=128)
     if log is not None:
@@ -112,6 +114,7 @@ def cluster_training(
             epsilon=epsilon,
             step_size=pgd_step_size,
             n_epoches=n_epoches,
+            **pgd_parameters,
         )
         # Running loss, for reference
         running_loss = 0
