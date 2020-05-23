@@ -56,19 +56,46 @@ models = {
 }
 
 params = [
-    {"n_clusters": 10, "kmeans_parameters": {"n_init": 1}},
-    {"n_clusters": 50, "kmeans_parameters": {"n_init": 1}},
-    {"n_clusters": 100, "kmeans_parameters": {"n_init": 1}},
-    {"n_clusters": 500, "kmeans_parameters": {"n_init": 1}},
-    {"n_clusters": 1000, "kmeans_parameters": {"n_init": 1}},
-    {"n_clusters": 5000, "kmeans_parameters": {"n_init": 1}},
+    {"n_clusters": 100, "kmeans_parameters": {"n_init": 3, "verbose": 3}},
+    {"n_clusters": 100, "kmeans_parameters": {"n_init": 1, "verbose": 3}},
+    {
+        "n_clusters": 100,
+        "kmeans_parameters": {"n_init": 1, "max_iter": 1, "verbose": 3},
+    },
+    {
+        "n_clusters": 100,
+        "kmeans_parameters": {
+            "n_init": 1,
+            "max_iter": 1,
+            "init": "random",
+            "verbose": 3,
+        },
+    },
+    {"n_clusters": 5000, "kmeans_parameters": {"n_init": 3, "verbose": 3}},
+    {"n_clusters": 5000, "kmeans_parameters": {"n_init": 1, "verbose": 3}},
+    {
+        "n_clusters": 5000,
+        "kmeans_parameters": {"n_init": 1, "max_iter": 1, "verbose": 3},
+    },
+    {
+        "n_clusters": 5000,
+        "kmeans_parameters": {
+            "n_init": 1,
+            "max_iter": 1,
+            "init": "random",
+            "verbose": 3,
+        },
+    },
 ]
+
+global_param = {}
 
 new_models = {}
 
 # %%
 for model_name, (model, trainloader, testloader) in models.items():
     for p in params:
+        p = {**p, **global_param}
         logging.info(f"Training {model_name}")
         logging.info(f"Params {p}")
         new_model = cluster_training(
