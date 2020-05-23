@@ -32,7 +32,7 @@ class AdversarialDataset(Dataset):
         self.transform = transform
 
         if random_sample:
-            kmeans_parameters["max_iters"] = 1
+            kmeans_parameters["max_iter"] = 1
         # Create a k-Means instance and fit
         d = self.dataset.data.reshape(len(dataset), -1)
         self.km = KMeans(n_clusters=n_clusters, **kmeans_parameters)
