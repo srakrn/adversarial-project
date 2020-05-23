@@ -56,12 +56,12 @@ models = {
 }
 
 params = [
-    {"n_clusters": 10},
-    {"n_clusters": 50},
-    {"n_clusters": 100},
-    {"n_clusters": 500},
-    {"n_clusters": 1000},
-    {"n_clusters": 5000},
+    {"n_clusters": 10, "kmeans_parameters": {"n_init": 1}},
+    {"n_clusters": 50, "kmeans_parameters": {"n_init": 1}},
+    {"n_clusters": 100, "kmeans_parameters": {"n_init": 1}},
+    {"n_clusters": 500, "kmeans_parameters": {"n_init": 1}},
+    {"n_clusters": 1000, "kmeans_parameters": {"n_init": 1}},
+    {"n_clusters": 5000, "kmeans_parameters": {"n_init": 1}},
 ]
 
 new_models = {}
