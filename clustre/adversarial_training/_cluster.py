@@ -1,10 +1,12 @@
+from datetime import datetime
+
 import torch
 from sklearn.cluster import KMeans
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
 from clustre.attacking import pgd_perturbs
-from clustre.helpers import get_time
+from clustre.helpers import delta_time_string, format_time, get_time
 
 
 class AdversarialDataset(Dataset):
@@ -74,7 +76,8 @@ def cluster_training(
     log=None,
 ):
     if log is not None:
-        log.info(f"k-Means started: {get_time()}")
+        log.info(f"k-Means started at: {get_time()}")
+        kmeans_start = datetime.now()
     adversarial_dataset = AdversarialDataset(
         model,
         trainloader.dataset,
@@ -85,7 +88,11 @@ def cluster_training(
     )
     adversarialloader = DataLoader(adversarial_dataset, batch_size=128)
     if log is not None:
+        kmeans_end = datetime.now()
         log.info(f"k-Means ended: {get_time()}")
+        log.info(
+            f"k-Means time used: {delta_time_string(kmeans_end, kmeans_start)}"
+        )
 
     # Move to device if desired
     if device is not None:
@@ -108,7 +115,8 @@ def cluster_training(
             log.info(f"\tEpoch {e+1}")
         # Log epoches
         if log is not None:
-            log.info(f"\t\tGenerating PGD at {get_time()}")
+            log.info(f"\t\tThis epoch starts at {get_time()}")
+            pgd_start = datetime.now()
         # Generate PGD examples
         cluster_perturbs = pgd_perturbs(
             model,
@@ -119,7 +127,11 @@ def cluster_training(
             **pgd_parameters,
         )
         if log is not None:
-            log.info(f"\t\tBackproping PGD at {get_time()}")
+            pgd_end = datetime.now()
+            log.info(
+                f"\t\tTime used for PGD generation: {delta_time_string(pgd_end, pgd_start)}"
+            )
+            back_start = datetime.now()
         # Running loss, for reference
         running_loss = 0
         # Iterate over minibatches of trainloader
@@ -142,7 +154,11 @@ def cluster_training(
             running_loss += loss.item()
         else:
             if log is not None:
-                log.info(f"\t\tFinished this epoch at {get_time()}")
+                back_end = datetime.now()
+                log.info(
+                    f"\t\tTime used for backprop: {delta_time_string(back_end, back_start)}"
+                )
+                log.info(f"\t\tThis epoch terminates at {get_time()}")
                 log.info(f"\tTraining loss: {running_loss/len(trainloader)}")
     if log is not None:
         log.info(f"Training ended: {get_time()}")
