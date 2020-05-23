@@ -20,6 +20,7 @@ class AdversarialDataset(Dataset):
         dataset,
         criterion=nn.CrossEntropyLoss(),
         n_clusters=100,
+        random_sample=False,
         kmeans_parameters={},
         transform=None,
     ):
@@ -30,13 +31,16 @@ class AdversarialDataset(Dataset):
         self.criterion = criterion
         self.transform = transform
 
-        # Create a k-Means instance and fit
-        d = self.dataset.data.reshape(len(dataset), -1)
-        self.km = KMeans(n_clusters=n_clusters, **kmeans_parameters)
-        self.km.fit(d)
-        # Obtain targets and ids of each cluster centres
-        self.cluster_ids = self.km.predict(d)
-        self.cluster_centers_idx = self.km.transform(d).argmin(axis=0)
+        if random_sample:
+            kmeans_parameters["max_iters"] = 1
+        else:
+            # Create a k-Means instance and fit
+            d = self.dataset.data.reshape(len(dataset), -1)
+            self.km = KMeans(n_clusters=n_clusters, **kmeans_parameters)
+            self.km.fit(d)
+            # Obtain targets and ids of each cluster centres
+            self.cluster_ids = self.km.predict(d)
+            self.cluster_centers_idx = self.km.transform(d).argmin(axis=0)
 
         # Extract only interested ones
         X = []
@@ -66,6 +70,7 @@ def cluster_training(
     trainloader,
     n_epoches=10,
     n_clusters=100,
+    random_sample=False,
     epsilon=0.3,
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
@@ -83,6 +88,7 @@ def cluster_training(
         trainloader.dataset,
         criterion=criterion,
         n_clusters=n_clusters,
+        random_sample=random_sample,
         kmeans_parameters=kmeans_parameters,
         transform=trainloader.dataset.transform,
     )
