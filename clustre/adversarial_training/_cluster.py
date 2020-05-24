@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import numpy as np
 import torch
 from sklearn.cluster import KMeans
 from torch import nn, optim
@@ -7,6 +8,24 @@ from torch.utils.data import DataLoader, Dataset
 
 from clustre.attacking import pgd_perturbs
 from clustre.helpers import delta_time_string, format_time, get_time
+
+
+class DoubleKMeans(KMeans):
+    def __init__(self, k1, k2, **kwargs):
+        self.k1 = k1
+        self.k2 = k2
+        self.km1 = KMeans(k1, **kwargs)
+        self.km2 = [KMeans(k2, **kwargs) for _ in range(k1)]
+
+    def fit_predict(self, X):
+        self.km1.fit(X)
+        r1 = self.km1.predict(X)
+        r2 = []
+        for i in range(self.k1):
+            ind = np.argwhere(r1 == i).flatten()
+            r2.append(self.km2[i].fit_predict(X[ind]))
+        y = np.concatenate([i * self.k2 + j for i, j in enumerate(r2)])
+        return y
 
 
 class AdversarialDataset(Dataset):
