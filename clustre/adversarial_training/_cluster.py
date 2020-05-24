@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 
 import numpy as np
@@ -7,7 +8,13 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
 from clustre.attacking import pgd_perturbs
-from clustre.helpers import delta_time_string, format_time, get_time
+from clustre.helpers import delta_time_string, get_time
+
+
+def count_unique(keys):
+    uniq_keys = np.unique(keys)
+    bins = uniq_keys.searchsorted(keys)
+    return uniq_keys, np.bincount(bins)
 
 
 class DoubleKMeans(KMeans):
@@ -20,10 +27,21 @@ class DoubleKMeans(KMeans):
     def fit_predict(self, X):
         self.km1.fit(X)
         r1 = self.km1.predict(X)
+        _, counts = count_unique(r1)
+        counts = np.round((counts / len(X)) * (self.k1 * self.k2)).astype(int)
+        print(counts)
+        for i, c in enumerate(counts):
+            self.km2[i].n_clusters = c
         r2 = []
+        self.nearest = []
         for i in range(self.k1):
-            ind = np.argwhere(r1 == i).flatten()
-            r2.append(self.km2[i].fit_predict(X[ind]))
+            idx = np.argwhere(r1 == i).flatten()
+            new_X = X[idx]
+            pred = self.km2[i].fit_predict(new_X)
+            r2.append(pred)
+            trans = self.km2[i].transform(new_X).argmin(axis=0)
+            self.nearest.append(idx[trans])
+        self.nearest = np.concatenate(self.nearest)
         y = np.concatenate([i * self.k2 + j for i, j in enumerate(r2)])
         return y
 
@@ -53,11 +71,16 @@ class AdversarialDataset(Dataset):
 
         # Create a k-Means instance and fit
         d = self.dataset.data.reshape(len(dataset), -1)
-        self.km = KMeans(n_clusters=n_clusters, **kmeans_parameters)
-        self.km.fit(d)
+        if type(n_clusters) == int:
+            k = math.ceil(math.sqrt(n_clusters))
+            self.km = DoubleKMeans(k, k, **kmeans_parameters)
+        else:
+            self.km = DoubleKMeans(
+                n_clusters[0], n_clusters[1], **kmeans_parameters
+            )
         # Obtain targets and ids of each cluster centres
-        self.cluster_ids = self.km.predict(d)
-        self.cluster_centers_idx = self.km.transform(d).argmin(axis=0)
+        self.cluster_ids = self.km.fit_predict(d)
+        self.cluster_centers_idx = self.km.nearest
 
         # Extract only interested ones
         X = []
