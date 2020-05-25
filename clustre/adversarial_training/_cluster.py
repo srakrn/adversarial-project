@@ -17,33 +17,30 @@ def count_unique(keys):
     return uniq_keys, np.bincount(bins)
 
 
-class DoubleKMeans(KMeans):
-    def __init__(self, k1, k2, **kwargs):
-        self.k1 = k1
-        self.k2 = k2
-        self.km1 = KMeans(k1, **kwargs)
-        self.km2 = [KMeans(k2, **kwargs) for _ in range(k1)]
-
-    def fit_predict(self, X):
-        self.km1.fit(X)
-        r1 = self.km1.predict(X)
-        _, counts = count_unique(r1)
-        counts = np.round((counts / len(X)) * (self.k1 * self.k2)).astype(int)
-        print(counts)
-        for i, c in enumerate(counts):
-            self.km2[i].n_clusters = c
-        r2 = []
-        self.nearest = []
-        for i in range(self.k1):
-            idx = np.argwhere(r1 == i).flatten()
-            new_X = X[idx]
-            pred = self.km2[i].fit_predict(new_X)
-            r2.append(pred)
-            trans = self.km2[i].transform(new_X).argmin(axis=0)
-            self.nearest.append(idx[trans])
-        self.nearest = np.concatenate(self.nearest)
-        y = np.concatenate([i * self.k2 + j for i, j in enumerate(r2)])
-        return y
+def double_kmeans_centers(k, k_1, X, **kmeans_params):
+    # Create the first of k-Means
+    km_1 = KMeans(k_1, **kmeans_params)
+    # Create the inner list of k-Means
+    k_2 = math.ceil(k / k_1)
+    km_2 = [KMeans(k_2, **kmeans_params) for _ in range(k_1)]
+    # Fit the outer k-Means
+    y_1 = km_1.fit_predict(X)
+    # Adjust k in inner k-Means to balance cluster amount
+    _, y_1_count = count_unique(y_1)
+    k_2 = np.ceil(y_1_count / np.sum(y_1_count) * k).astype(int)
+    for km, i in zip(km_2, k_2):
+        km.n_clusters = i
+    # Iteratively fit inner k-Means
+    for i in range(k_1):
+        idx = np.argwhere(y_1 == i).flatten()
+        sub_X = X[idx]
+        km_2[i].fit(sub_X)
+    # Obtain cluster centers list
+    centers = np.concatenate([i.cluster_centers_ for i in km_2])
+    # Create new k-Means object
+    kmp = KMeans(len(centers), **kmeans_params)
+    kmp.cluster_centers_ = centers
+    return kmp
 
 
 class AdversarialDataset(Dataset):
@@ -73,14 +70,14 @@ class AdversarialDataset(Dataset):
         d = self.dataset.data.reshape(len(dataset), -1)
         if type(n_clusters) == int:
             k = math.ceil(math.sqrt(n_clusters))
-            self.km = DoubleKMeans(k, k, **kmeans_parameters)
+            self.km = double_kmeans_centers(k, k, d, **kmeans_parameters)
         else:
-            self.km = DoubleKMeans(
-                n_clusters[0], n_clusters[1], **kmeans_parameters
+            self.km = double_kmeans_centers(
+                n_clusters[0], n_clusters[1], d, **kmeans_parameters
             )
         # Obtain targets and ids of each cluster centres
-        self.cluster_ids = self.km.fit_predict(d)
-        self.cluster_centers_idx = self.km.nearest
+        self.cluster_ids = self.km.predict(d)
+        self.cluster_centers_idx = self.km.transform(d).argmin(axis=0)
 
         # Extract only interested ones
         X = []
