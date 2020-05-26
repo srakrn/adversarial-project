@@ -17,17 +17,17 @@ def count_unique(keys):
     return uniq_keys, np.bincount(bins)
 
 
-def double_kmeans_centers(k, k_1, X, **kmeans_params):
+def double_kmeans_centers(n_clusters, k_1, X, **kmeans_params):
     # Create the first of k-Means
     km_1 = KMeans(k_1, **kmeans_params)
     # Create the inner list of k-Means
-    k_2 = math.ceil(k / k_1)
+    k_2 = math.ceil(n_clusters / k_1)
     km_2 = [KMeans(k_2, **kmeans_params) for _ in range(k_1)]
     # Fit the outer k-Means
     y_1 = km_1.fit_predict(X)
     # Adjust k in inner k-Means to balance cluster amount
     _, y_1_count = count_unique(y_1)
-    k_2 = np.ceil(y_1_count / np.sum(y_1_count) * k).astype(int)
+    k_2 = np.ceil(y_1_count / np.sum(y_1_count) * n_clusters).astype(int)
     for km, i in zip(km_2, k_2):
         km.n_clusters = i
     # Iteratively fit inner k-Means
@@ -38,8 +38,10 @@ def double_kmeans_centers(k, k_1, X, **kmeans_params):
     # Obtain cluster centers list
     centers = np.concatenate([i.cluster_centers_ for i in km_2])
     # Create new k-Means object
-    kmp = KMeans(len(centers), **kmeans_params)
-    kmp.cluster_centers_ = centers
+    print("Final k-Means")
+    kmp = KMeans(len(centers), init=centers, n_init=1, max_iter=1, verbose=3)
+    kmp.fit(X)
+    print(centers.shape)
     return kmp
 
 
@@ -54,6 +56,7 @@ class AdversarialDataset(Dataset):
         dataset,
         criterion=nn.CrossEntropyLoss(),
         n_clusters=100,
+        km1=None,
         kmeans_parameters={"n_init": 3},
         transform=None,
     ):
@@ -68,12 +71,14 @@ class AdversarialDataset(Dataset):
 
         # Create a k-Means instance and fit
         d = self.dataset.data.reshape(len(dataset), -1)
-        if type(n_clusters) == int:
+        if km1 is None:
             k = math.ceil(math.sqrt(n_clusters))
-            self.km = double_kmeans_centers(k, k, d, **kmeans_parameters)
+            self.km = double_kmeans_centers(
+                n_clusters, k, d, **kmeans_parameters
+            )
         else:
             self.km = double_kmeans_centers(
-                n_clusters[0], n_clusters[1], d, **kmeans_parameters
+                n_clusters, km1, d, **kmeans_parameters
             )
         # Obtain targets and ids of each cluster centres
         self.cluster_ids = self.km.predict(d)
@@ -107,6 +112,7 @@ def cluster_training(
     trainloader,
     n_epoches=10,
     n_clusters=100,
+    km1=None,
     epsilon=0.3,
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
@@ -124,6 +130,7 @@ def cluster_training(
         trainloader.dataset,
         criterion=criterion,
         n_clusters=n_clusters,
+        km1=km1,
         kmeans_parameters=kmeans_parameters,
         transform=trainloader.dataset.transform,
     )
