@@ -2,47 +2,47 @@ import math
 from datetime import datetime
 
 import numpy as np
+import numpy.linalg as la
 import torch
-from sklearn.cluster import KMeans
+from clustre.attacking import pgd_perturbs
+from clustre.helpers import delta_time_string, get_time
+from libKMCUDA import kmeans_cuda
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
-from clustre.attacking import pgd_perturbs
-from clustre.helpers import delta_time_string, get_time
 
+# %%
+class KMeansWrapper:
+    def __init__(self, X, n_clusters, n_init=3):
+        self.inertia = np.inf
+        for _ in range(n_init):
+            centers, y_pred = kmeans_cuda(X.astype(np.float32), n_clusters)
+            full_idx = np.arange(len(X))
+            centroids_idxs = []
+            inertia = 0
+            for i in range(n_clusters):
+                idx = full_idx[y_pred == i]
+                if len(idx) != 0:
+                    X_sub = X[idx]
+                    norm = la.norm(X_sub - centers[i], axis=1)
+                    min_idx = norm.argmin()
+                    centroids_idxs.append(idx[min_idx])
+                    inertia += np.sum(norm)
+                else:
+                    centroids_idxs.append(0)
+            centroids_idxs = np.array(centroids_idxs)
+
+            if inertia < self.inertia:
+                self.centers = centers
+                self.y_pred = y_pred
+                self.centroids_idxs = centroids_idxs
+
+# %%
 
 def count_unique(keys):
     uniq_keys = np.unique(keys)
     bins = uniq_keys.searchsorted(keys)
     return uniq_keys, np.bincount(bins)
-
-
-def double_kmeans_centers(n_clusters, k_1, X, **kmeans_params):
-    # Create the first of k-Means
-    km_1 = KMeans(k_1, **kmeans_params)
-    # Create the inner list of k-Means
-    k_2 = math.ceil(n_clusters / k_1)
-    km_2 = [KMeans(k_2, **kmeans_params) for _ in range(k_1)]
-    # Fit the outer k-Means
-    y_1 = km_1.fit_predict(X)
-    # Adjust k in inner k-Means to balance cluster amount
-    _, y_1_count = count_unique(y_1)
-    k_2 = np.ceil(y_1_count / np.sum(y_1_count) * n_clusters).astype(int)
-    for km, i in zip(km_2, k_2):
-        km.n_clusters = i
-    # Iteratively fit inner k-Means
-    for i in range(k_1):
-        idx = np.argwhere(y_1 == i).flatten()
-        sub_X = X[idx]
-        km_2[i].fit(sub_X)
-    # Obtain cluster centers list
-    centers = np.concatenate([i.cluster_centers_ for i in km_2])
-    # Create new k-Means object
-    print("Final k-Means")
-    kmp = KMeans(len(centers), init=centers, n_init=1, max_iter=1, verbose=3)
-    kmp.fit(X)
-    print(centers.shape)
-    return kmp
 
 
 class AdversarialDataset(Dataset):
@@ -56,7 +56,6 @@ class AdversarialDataset(Dataset):
         dataset,
         criterion=nn.CrossEntropyLoss(),
         n_clusters=100,
-        km1=None,
         kmeans_parameters={"n_init": 3},
         transform=None,
     ):
@@ -70,19 +69,13 @@ class AdversarialDataset(Dataset):
         print(kmeans_parameters)
 
         # Create a k-Means instance and fit
-        d = self.dataset.data.reshape(len(dataset), -1)
-        if km1 is None:
-            k = math.ceil(math.sqrt(n_clusters))
-            self.km = double_kmeans_centers(
-                n_clusters, k, d, **kmeans_parameters
-            )
-        else:
-            self.km = double_kmeans_centers(
-                n_clusters, km1, d, **kmeans_parameters
-            )
+        d = self.dataset.data.reshape(len(dataset), -1).numpy()
+        self.km = KMeansWrapper(
+            d, n_clusters, **kmeans_parameters
+        )
         # Obtain targets and ids of each cluster centres
-        self.cluster_ids = self.km.predict(d)
-        self.cluster_centers_idx = self.km.transform(d).argmin(axis=0)
+        self.cluster_ids = self.km.y_pred.astype(int)
+        self.cluster_centers_idx = self.km.centroids_idxs.astype(int)
 
         # Extract only interested ones
         X = []
@@ -130,7 +123,6 @@ def cluster_training(
         trainloader.dataset,
         criterion=criterion,
         n_clusters=n_clusters,
-        km1=km1,
         kmeans_parameters=kmeans_parameters,
         transform=trainloader.dataset.transform,
     )
@@ -191,10 +183,8 @@ def cluster_training(
                 cluster_perturbs = cluster_perturbs.to(device)
             optimizer.zero_grad()
 
-            output = model(
-                images
-                + cluster_perturbs[cluster_idx.numpy()].reshape(images.shape)
-            )
+            X_input = images + cluster_perturbs[cluster_idx.numpy()].reshape(images.shape)
+            output = model(X_input)
             loss = criterion(output, labels)
             loss.backward()
             optimizer.step()

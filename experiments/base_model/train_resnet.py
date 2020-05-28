@@ -69,4 +69,4 @@ for model_name, model in models.items():
         print(f"Epoch: {e}\n\tTrain: {training_loss} Test: {testing_loss}")
 
         if testing_loss <= min(testing_losses):
-            torch.save(model.state_dict(), "results/models/{}.model".format(model_name))
+            torch.save(model.state_dict(), "{}.model".format(model_name))

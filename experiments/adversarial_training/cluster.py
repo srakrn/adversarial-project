@@ -4,8 +4,6 @@ import os
 import sys
 
 import torch
-from torch import nn, optim
-
 from clustre.adversarial_training import cluster_training
 from clustre.helpers.datasets import (cifar10_testloader, cifar10_trainloader,
                                       mnist_testloader, mnist_trainloader)
@@ -19,6 +17,7 @@ from clustre.models.state_dicts import (cifar10_cnn_state,
                                         cifar10_wideresnet_state,
                                         mnist_cnn_state, mnist_fcnn_state,
                                         mnist_resnet_state)
+from torch import nn, optim
 
 # %%
 DEVICE = "cuda:0"
@@ -32,45 +31,13 @@ log = logging.getLogger()
 mnist_fcnn.load_state_dict(mnist_fcnn_state)
 mnist_cnn.load_state_dict(mnist_cnn_state)
 mnist_resnet.load_state_dict(mnist_resnet_state)
-cifar10_cnn.load_state_dict(cifar10_cnn_state)
-cifar10_resnet.load_state_dict(cifar10_resnet_state)
-cifar10_wideresnet.load_state_dict(cifar10_wideresnet_state)
 
 models = {
     "MNIST ResNet": [mnist_resnet, mnist_trainloader, mnist_testloader],
 }
 
 params = [
-    {"n_clusters": 100, "kmeans_parameters": {"n_init": 3, "verbose": 3}},
-    {"n_clusters": 100, "kmeans_parameters": {"n_init": 1, "verbose": 3}},
-    {
-        "n_clusters": 100,
-        "kmeans_parameters": {"n_init": 1, "max_iter": 1, "verbose": 3},
-    },
-    {
-        "n_clusters": 100,
-        "kmeans_parameters": {
-            "n_init": 1,
-            "max_iter": 1,
-            "init": "random",
-            "verbose": 3,
-        },
-    },
-    {"n_clusters": 5000, "kmeans_parameters": {"n_init": 3, "verbose": 3}},
-    {"n_clusters": 5000, "kmeans_parameters": {"n_init": 1, "verbose": 3}},
-    {
-        "n_clusters": 5000,
-        "kmeans_parameters": {"n_init": 1, "max_iter": 1, "verbose": 3},
-    },
-    {
-        "n_clusters": 5000,
-        "kmeans_parameters": {
-            "n_init": 1,
-            "max_iter": 1,
-            "init": "random",
-            "verbose": 3,
-        },
-    },
+    {"n_clusters": 6000, "kmeans_parameters": {"n_init": 5}},
 ]
 
 global_param = {}
