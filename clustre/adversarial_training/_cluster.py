@@ -3,14 +3,14 @@ from datetime import datetime
 
 import numpy as np
 import numpy.linalg as la
-import torch
 from sklearn.cluster import KMeans
-from torch import nn, optim
-from torch.utils.data import DataLoader, Dataset
 
+import torch
 from clustre.attacking import fgsm, fgsm_perturbs, pgd, pgd_perturbs
 from clustre.helpers import delta_time_string, get_time
 from libKMCUDA import kmeans_cuda
+from torch import nn, optim
+from torch.utils.data import DataLoader, Dataset
 
 
 # %%
@@ -66,7 +66,7 @@ class AdversarialDataset(Dataset):
         criterion=nn.CrossEntropyLoss(),
         n_clusters=100,
         method="kmcuda",
-        cluster_with="fgsm",
+        cluster_with="original_data",
         epsilon=0.3,
         n_init=3,
         transform=None,
@@ -147,7 +147,9 @@ class AdversarialDataset(Dataset):
                 d.append(y)
             d = np.concatenate(d)
         elif cluster_with == "original_data":
-            d = self.dataset.data.reshape(len(dataset), -1).numpy()
+            d = self.dataset.data.reshape(len(dataset), -1)
+            if type(d) is not np.ndarray:
+                d = d.detach().cpu().numpy()
         else:
             raise NotImplementedError
         self.km = KMeansWrapper(d, n_clusters, n_init, method)
