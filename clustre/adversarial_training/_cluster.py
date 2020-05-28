@@ -80,12 +80,12 @@ class AdversarialDataset(Dataset):
         self.transform = transform
 
         # Create a k-Means instance and fit
-        if cluster_with == "fgsm":
+        if cluster_with == "fgsm_perturb":
             dl = DataLoader(dataset, batch_size=64, shuffle=False)
             d = []
             for images, labels in iter(dl):
                 y = (
-                    fgsm(
+                    fgsm_perturbs(
                         model,
                         criterion,
                         images,
@@ -99,12 +99,58 @@ class AdversarialDataset(Dataset):
                     .numpy()
                 )
                 d.append(y)
-            self.d = np.concatenate(d)
+            d = np.concatenate(d)
+        elif cluster_with == "fgsm_input":
+            dl = DataLoader(dataset, batch_size=64, shuffle=False)
+            d = []
+            for images, labels in iter(dl):
+                y = (
+                    fgsm(model, criterion, images, labels, device=device)
+                    .detach()
+                    .cpu()
+                    .reshape(len(images), -1)
+                    .numpy()
+                )
+                d.append(y)
+            d = np.concatenate(d)
+        if cluster_with == "pgd_perturb":
+            dl = DataLoader(dataset, batch_size=64, shuffle=False)
+            d = []
+            for images, labels in iter(dl):
+                y = (
+                    pgd_perturbs(
+                        model,
+                        criterion,
+                        images,
+                        labels,
+                        epsilon=epsilon,
+                        device=device,
+                    )
+                    .detach()
+                    .cpu()
+                    .reshape(len(images), -1)
+                    .numpy()
+                )
+                d.append(y)
+            d = np.concatenate(d)
+        elif cluster_with == "pgd_input":
+            dl = DataLoader(dataset, batch_size=64, shuffle=False)
+            d = []
+            for images, labels in iter(dl):
+                y = (
+                    pgd(model, criterion, images, labels, device=device)
+                    .detach()
+                    .cpu()
+                    .reshape(len(images), -1)
+                    .numpy()
+                )
+                d.append(y)
+            d = np.concatenate(d)
         elif cluster_with == "original_data":
-            self.d = self.dataset.data.reshape(len(dataset), -1).numpy()
+            d = self.dataset.data.reshape(len(dataset), -1).numpy()
         else:
             raise NotImplementedError
-        self.km = KMeansWrapper(self.d, n_clusters, n_init, method)
+        self.km = KMeansWrapper(d, n_clusters, n_init, method)
         # Obtain targets and ids of each cluster centres
         self.cluster_ids = self.km.y_pred.astype(int)
         self.cluster_centers_idx = self.km.centroids_idxs.astype(int)

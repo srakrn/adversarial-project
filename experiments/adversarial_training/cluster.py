@@ -54,11 +54,77 @@ models = {
 
 params = [
     {
-        "n_clusters": 5000,
-        "cluster_with": "original_data",
+        "n_clusters": 500,
+        "cluster_with": "fgsm_input",
         "method": "kmcuda",
         "n_init": 3,
-    }
+    },
+    {
+        "n_clusters": 1000,
+        "cluster_with": "fgsm_input",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 2000,
+        "cluster_with": "fgsm_input",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 5000,
+        "cluster_with": "fgsm_input",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 500,
+        "cluster_with": "fgsm_perturb",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 1000,
+        "cluster_with": "fgsm_perturb",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 2000,
+        "cluster_with": "fgsm_perturb",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 5000,
+        "cluster_with": "fgsm_perturb",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 500,
+        "cluster_with": "pgd_input",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 1000,
+        "cluster_with": "pgd_input",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 2000,
+        "cluster_with": "pgd_input",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
+    {
+        "n_clusters": 5000,
+        "cluster_with": "pgd_input",
+        "method": "kmcuda",
+        "n_init": 3,
+    },
 ]
 
 global_param = {}
