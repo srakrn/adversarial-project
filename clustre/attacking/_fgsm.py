@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 
-def fgsm(model, criterion, image, label, epsilon=0.03, device=None):
+def fgsm(model, criterion, image, label, epsilon=0.3, device=None):
     if device is not None:
         model.to(device)
         image = image.to(device)
@@ -19,7 +19,7 @@ def fgsm(model, criterion, image, label, epsilon=0.03, device=None):
     return attack_image
 
 
-def fgsm_perturbs(model, criterion, image, label, epsilon=0.03, device=None):
+def fgsm_perturbs(model, criterion, image, label, epsilon=0.3, device=None):
     if len(image.shape) == 3:
         image.unsqueeze_(0)
         label.unsqueeze_(0)
