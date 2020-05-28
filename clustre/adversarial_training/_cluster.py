@@ -113,7 +113,7 @@ class AdversarialDataset(Dataset):
                 )
                 d.append(y)
             d = np.concatenate(d)
-        if cluster_with == "pgd_perturb":
+        elif cluster_with == "pgd_perturb":
             dl = DataLoader(dataset, batch_size=64, shuffle=False)
             d = []
             for images, labels in iter(dl):
