@@ -28,7 +28,7 @@ class TestFgsm(unittest.TestCase):
 
     def test_fgsm_range(self):
         result = fgsm(mnist_cnn, nn.CrossEntropyLoss(), batch_X, batch_y)
-        return ((result >= -1) & (result <= 1)).all()
+        self.assertTrue(((result >= -1) & (result <= 1)).all())
 
 
 # %%
