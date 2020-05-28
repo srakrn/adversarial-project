@@ -53,7 +53,12 @@ models = {
 }
 
 params = [
-    {"n_clusters": 5000, "kmeans_parameters": {"n_init": 5}},
+    {
+        "n_clusters": 5000,
+        "cluster_with": "original_data",
+        "method": "kmcuda",
+        "n_init": 3,
+    }
 ]
 
 global_param = {}

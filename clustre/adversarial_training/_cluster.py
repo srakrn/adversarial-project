@@ -4,42 +4,48 @@ from datetime import datetime
 import numpy as np
 import numpy.linalg as la
 import torch
+from sklearn.cluster import KMeans
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
-from clustre.attacking import pgd_perturbs
+from clustre.attacking import fgsm, fgsm_perturbs, pgd, pgd_perturbs
 from clustre.helpers import delta_time_string, get_time
 from libKMCUDA import kmeans_cuda
 
 
 # %%
 class KMeansWrapper:
-    def __init__(self, X, n_clusters, n_init=3):
-        self.inertia = np.inf
-        for _ in range(n_init):
-            centers, y_pred = kmeans_cuda(X.astype(np.float32), n_clusters)
-            full_idx = np.arange(len(X))
-            centroids_idxs = []
-            inertia = 0
-            for i in range(n_clusters):
-                idx = full_idx[y_pred == i]
-                if len(idx) != 0:
-                    X_sub = X[idx]
-                    norm = la.norm(X_sub - centers[i], axis=1)
-                    min_idx = norm.argmin()
-                    centroids_idxs.append(idx[min_idx])
-                    inertia += np.sum(norm)
-                else:
-                    centroids_idxs.append(0)
-            centroids_idxs = np.array(centroids_idxs)
+    def __init__(self, X, n_clusters, n_init=3, method="kmcuda"):
+        if method == "kmcuda":
+            self.inertia = np.inf
+            for _ in range(n_init):
+                centers, y_pred = kmeans_cuda(X.astype(np.float32), n_clusters)
+                full_idx = np.arange(len(X))
+                centroids_idxs = []
+                inertia = 0
+                for i in range(n_clusters):
+                    idx = full_idx[y_pred == i]
+                    if len(idx) != 0:
+                        X_sub = X[idx]
+                        norm = la.norm(X_sub - centers[i], axis=1)
+                        min_idx = norm.argmin()
+                        centroids_idxs.append(idx[min_idx])
+                        inertia += np.sum(norm)
+                    else:
+                        centroids_idxs.append(0)
+                centroids_idxs = np.array(centroids_idxs)
 
-            if inertia < self.inertia:
-                self.centers = centers
-                self.y_pred = y_pred
-                self.centroids_idxs = centroids_idxs
-
-
-# %%
+                if inertia < self.inertia:
+                    self.centers = centers
+                    self.y_pred = y_pred
+                    self.centroids_idxs = centroids_idxs
+        elif method == "sklearn":
+            km = KMeans(n_clusters, n_init=n_init)
+            self.y_pred = km.fit_predict(X)
+            self.centers = km.cluster_centers_
+            self.centroids_idxs = km.transform(X).argmin(axis=0)
+        else:
+            raise NotImplementedError
 
 
 def count_unique(keys):
@@ -59,8 +65,12 @@ class AdversarialDataset(Dataset):
         dataset,
         criterion=nn.CrossEntropyLoss(),
         n_clusters=100,
-        kmeans_parameters={"n_init": 3},
+        method="kmcuda",
+        cluster_with="fgsm",
+        epsilon=0.3,
+        n_init=3,
         transform=None,
+        device="cuda",
     ):
         # Initialise things
         super().__init__()
@@ -69,11 +79,32 @@ class AdversarialDataset(Dataset):
         self.criterion = criterion
         self.transform = transform
 
-        print(kmeans_parameters)
-
         # Create a k-Means instance and fit
-        d = self.dataset.data.reshape(len(dataset), -1).numpy()
-        self.km = KMeansWrapper(d, n_clusters, **kmeans_parameters)
+        if cluster_with == "fgsm":
+            dl = DataLoader(dataset, batch_size=64, shuffle=False)
+            d = []
+            for images, labels in iter(dl):
+                y = (
+                    fgsm(
+                        model,
+                        criterion,
+                        images,
+                        labels,
+                        epsilon=epsilon,
+                        device=device,
+                    )
+                    .detach()
+                    .cpu()
+                    .reshape(len(images), -1)
+                    .numpy()
+                )
+                d.append(y)
+            self.d = np.concatenate(d)
+        elif cluster_with == "original_data":
+            self.d = self.dataset.data.reshape(len(dataset), -1).numpy()
+        else:
+            raise NotImplementedError
+        self.km = KMeansWrapper(self.d, n_clusters, n_init, method)
         # Obtain targets and ids of each cluster centres
         self.cluster_ids = self.km.y_pred.astype(int)
         self.cluster_centers_idx = self.km.centroids_idxs.astype(int)
@@ -106,12 +137,13 @@ def cluster_training(
     trainloader,
     n_epoches=10,
     n_clusters=100,
-    km1=None,
+    method="kmcuda",
+    cluster_with="fgsm",
+    n_init=3,
     epsilon=0.3,
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
     optimizer_params={},
-    kmeans_parameters={"n_init": 3},
     pgd_parameters={"n_epoches": 7},
     device=None,
     log=None,
@@ -124,8 +156,12 @@ def cluster_training(
         trainloader.dataset,
         criterion=criterion,
         n_clusters=n_clusters,
-        kmeans_parameters=kmeans_parameters,
+        method=method,
+        cluster_with=cluster_with,
+        epsilon=epsilon,
+        n_init=n_init,
         transform=trainloader.dataset.transform,
+        device=device,
     )
     adversarialloader = DataLoader(adversarial_dataset, batch_size=128)
     if log is not None:
