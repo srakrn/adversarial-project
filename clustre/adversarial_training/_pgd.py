@@ -2,15 +2,15 @@ import os
 import time
 
 import numpy as np
-import torch
-import torch.nn.functional as F
 from sklearn.cluster import KMeans
 from sklearn.metrics import classification_report
-from torch import nn, optim
-from torch.utils.data import DataLoader, Dataset
 
+import torch
+import torch.nn.functional as F
 from clustre.attacking import pgd
 from clustre.helpers import get_time
+from torch import nn, optim
+from torch.utils.data import DataLoader, Dataset
 
 
 def pgd_training(
