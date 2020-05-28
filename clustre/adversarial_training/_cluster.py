@@ -4,11 +4,12 @@ from datetime import datetime
 import numpy as np
 import numpy.linalg as la
 import torch
+from torch import nn, optim
+from torch.utils.data import DataLoader, Dataset
+
 from clustre.attacking import pgd_perturbs
 from clustre.helpers import delta_time_string, get_time
 from libKMCUDA import kmeans_cuda
-from torch import nn, optim
-from torch.utils.data import DataLoader, Dataset
 
 
 # %%
@@ -36,6 +37,8 @@ class KMeansWrapper:
                 self.centers = centers
                 self.y_pred = y_pred
                 self.centroids_idxs = centroids_idxs
+
+
 
 # %%
 
@@ -69,9 +72,7 @@ class AdversarialDataset(Dataset):
         print(kmeans_parameters)
 
         # Create a k-Means instance and fit
-        d = self.dataset.data.reshape(len(dataset), -1).numpy()
-        self.km = KMeansWrapper(
-            d, n_clusters, **kmeans_parameters
+        self.km = KMeansWrapper(d, n_clusters, **kmeans_parameters)
         )
         # Obtain targets and ids of each cluster centres
         self.cluster_ids = self.km.y_pred.astype(int)
@@ -182,7 +183,9 @@ def cluster_training(
                 labels = labels.to(device)
                 cluster_perturbs = cluster_perturbs.to(device)
             optimizer.zero_grad()
-
+            X_input = images + cluster_perturbs[cluster_idx.numpy()].reshape(
+                images.shape
+            )
             X_input = images + cluster_perturbs[cluster_idx.numpy()].reshape(images.shape)
             output = model(X_input)
             loss = criterion(output, labels)

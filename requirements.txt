@@ -7,7 +7,7 @@ certifi==2019.11.28
 chardet==3.0.4
 Click==7.0
 cloudpickle==1.4.1
--e git+git@github.com:srakrnxKU/adversarial-project.git@13220343436eb804cc14cf3f115d7ee72071dbf8#egg=clustre
+-e git+git@github.com:srakrnxKU/adversarial-project.git@9ef937136934c44882037bdb4b06d1f58c099f93#egg=clustre
 contextvars==2.4
 cycler==0.10.0
 dask==2.16.0
@@ -27,6 +27,7 @@ immutables==0.14
 isort==4.3.21
 joblib==0.14.1
 kiwisolver==1.1.0
+libKMCUDA==6.2.3
 llvmlite==0.32.1
 locket==0.2.0
 Markdown==3.2.1

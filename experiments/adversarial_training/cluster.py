@@ -4,20 +4,36 @@ import os
 import sys
 
 import torch
-from clustre.adversarial_training import cluster_training
-from clustre.helpers.datasets import (cifar10_testloader, cifar10_trainloader,
-                                      mnist_testloader, mnist_trainloader)
-from clustre.helpers.metrics import (classification_report,
-                                     classification_report_fgsm,
-                                     classification_report_pgd)
-from clustre.models import (cifar10_cnn, cifar10_resnet, cifar10_wideresnet,
-                            mnist_cnn, mnist_fcnn, mnist_resnet)
-from clustre.models.state_dicts import (cifar10_cnn_state,
-                                        cifar10_resnet_state,
-                                        cifar10_wideresnet_state,
-                                        mnist_cnn_state, mnist_fcnn_state,
-                                        mnist_resnet_state)
 from torch import nn, optim
+
+from clustre.adversarial_training import cluster_training
+from clustre.helpers.datasets import (
+    cifar10_testloader,
+    cifar10_trainloader,
+    mnist_testloader,
+    mnist_trainloader,
+)
+from clustre.helpers.metrics import (
+    classification_report,
+    classification_report_fgsm,
+    classification_report_pgd,
+)
+from clustre.models import (
+    cifar10_cnn,
+    cifar10_resnet,
+    cifar10_wideresnet,
+    mnist_cnn,
+    mnist_fcnn,
+    mnist_resnet,
+)
+from clustre.models.state_dicts import (
+    cifar10_cnn_state,
+    cifar10_resnet_state,
+    cifar10_wideresnet_state,
+    mnist_cnn_state,
+    mnist_fcnn_state,
+    mnist_resnet_state,
+)
 
 # %%
 DEVICE = "cuda:0"
@@ -37,7 +53,7 @@ models = {
 }
 
 params = [
-    {"n_clusters": 6000, "kmeans_parameters": {"n_init": 5}},
+    {"n_clusters": 5000, "kmeans_parameters": {"n_init": 5}},
 ]
 
 global_param = {}
