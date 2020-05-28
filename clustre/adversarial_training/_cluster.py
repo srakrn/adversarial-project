@@ -39,8 +39,8 @@ class KMeansWrapper:
                 self.centroids_idxs = centroids_idxs
 
 
-
 # %%
+
 
 def count_unique(keys):
     uniq_keys = np.unique(keys)
@@ -72,8 +72,8 @@ class AdversarialDataset(Dataset):
         print(kmeans_parameters)
 
         # Create a k-Means instance and fit
+        d = self.dataset.data.reshape(len(dataset), -1).numpy()
         self.km = KMeansWrapper(d, n_clusters, **kmeans_parameters)
-        )
         # Obtain targets and ids of each cluster centres
         self.cluster_ids = self.km.y_pred.astype(int)
         self.cluster_centers_idx = self.km.centroids_idxs.astype(int)
@@ -183,10 +183,10 @@ def cluster_training(
                 labels = labels.to(device)
                 cluster_perturbs = cluster_perturbs.to(device)
             optimizer.zero_grad()
+
             X_input = images + cluster_perturbs[cluster_idx.numpy()].reshape(
                 images.shape
             )
-            X_input = images + cluster_perturbs[cluster_idx.numpy()].reshape(images.shape)
             output = model(X_input)
             loss = criterion(output, labels)
             loss.backward()
