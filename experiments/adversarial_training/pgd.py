@@ -5,16 +5,31 @@ import sys
 
 import torch
 from clustre.adversarial_training import pgd_training
-from clustre.helpers.datasets import (cifar10_testloader, cifar10_trainloader,
-                                      mnist_testloader, mnist_trainloader)
-from clustre.helpers.metrics import (classification_report,
-                                     classification_report_fgsm,
-                                     classification_report_pgd)
-from clustre.models import (cifar10_cnn, cifar10_resnet, cifar10_wideresnet,
-                            mnist_cnn, mnist_fcnn, mnist_resnet)
-from clustre.models.state_dicts import (cifar10_cnn_state,
-                                        cifar10_resnet_state, mnist_cnn_state,
-                                        mnist_resnet_state)
+from clustre.helpers.datasets import (
+    cifar10_testloader,
+    cifar10_trainloader,
+    mnist_testloader,
+    mnist_trainloader,
+)
+from clustre.helpers.metrics import (
+    classification_report,
+    classification_report_fgsm,
+    classification_report_pgd,
+)
+from clustre.models import (
+    cifar10_cnn,
+    cifar10_resnet,
+    cifar10_wideresnet,
+    mnist_cnn,
+    mnist_fcnn,
+    mnist_resnet,
+)
+from clustre.models.state_dicts import (
+    cifar10_cnn_state,
+    cifar10_resnet_state,
+    mnist_cnn_state,
+    mnist_resnet_state,
+)
 from torch import nn, optim
 
 # %%
@@ -45,7 +60,7 @@ models = {
 for model_name, (model, trainloader, testloader) in models.items():
     logging.info(f"Training {model_name}")
     new_model = pgd_training(
-        model, trainloader, n_epoches=40, device="cuda", log=log
+        model, trainloader, n_epoches=8, device="cuda", log=log
     )
     torch.save(
         model.state_dict(),
