@@ -1,17 +1,8 @@
 import math
-import os
-import time
 
-import numpy as np
 import torch
-import torch.nn.functional as F
-from sklearn.cluster import KMeans
-from sklearn.metrics import classification_report
 from torch import nn, optim
-from torch.autograd import Variable
-from torch.utils.data import DataLoader, Dataset
 
-from clustre.attacking import pgd
 from clustre.helpers import get_time
 
 
@@ -72,7 +63,8 @@ def free_training(
                 loss.backward()
                 optimizer.step()
 
-                # Use gradients calculated for the minimisation step to update delta
+                # Use gradients calculated for the minimisation step
+                # to update delta
                 grad = attack_images.grad.data.detach()
                 delta = delta.detach() + epsilon * torch.sign(grad)
                 delta.clamp_(min=-epsilon, max=epsilon)
