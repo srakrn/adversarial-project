@@ -31,6 +31,9 @@ cifar10_cnn.load_state_dict(cifar10_cnn_state)
 cifar10_resnet.load_state_dict(cifar10_resnet_state)
 
 models = {
+    "MNIST CNN": [mnist_cnn, mnist_trainloader, mnist_testloader],
+    "MNIST ResNet": [mnist_resnet, mnist_trainloader, mnist_testloader],
+    "CIFAR-10 CNN": [cifar10_cnn, cifar10_trainloader, cifar10_testloader],
     "CIFAR-10 ResNet": [
         cifar10_resnet,
         cifar10_trainloader,
