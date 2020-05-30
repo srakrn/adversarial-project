@@ -3,17 +3,23 @@ import logging
 import os
 
 import torch
-
 from clustre.adversarial_training import free_training
-from clustre.helpers.datasets import (cifar10_testloader, cifar10_trainloader,
-                                      mnist_testloader, mnist_trainloader)
-from clustre.helpers.metrics import (classification_report,
-                                     classification_report_fgsm,
-                                     classification_report_pgd)
-from clustre.models import cifar10_cnn, cifar10_resnet, mnist_cnn, mnist_resnet
-from clustre.models.state_dicts import (cifar10_cnn_state,
-                                        cifar10_resnet_state, mnist_cnn_state,
-                                        mnist_resnet_state)
+from clustre.helpers.datasets import (
+    cifar10_testloader,
+    cifar10_trainloader,
+    cifar10_trainset,
+    mnist_testloader,
+    mnist_trainloader,
+    mnist_trainset,
+)
+from clustre.helpers.metrics import (
+    classification_report,
+    classification_report_fgsm,
+    classification_report_pgd,
+)
+from clustre.models import cifar10_wide_resnet34_10
+from clustre.models.state_dicts import cifar10_wide_resnet34_10_state
+from torch.utils.data import DataLoader
 
 # %%
 LOG_FILENAME = os.path.abspath(__file__)[:-3] + "_log.txt"
@@ -23,18 +29,17 @@ logging.basicConfig(filename=LOG_FILENAME, level=logging.INFO, format=FORMAT)
 log = logging.getLogger()
 
 # %%
-mnist_cnn.load_state_dict(mnist_cnn_state)
-mnist_resnet.load_state_dict(mnist_resnet_state)
-cifar10_cnn.load_state_dict(cifar10_cnn_state)
-cifar10_resnet.load_state_dict(cifar10_resnet_state)
+cifar10_trainloader_droplast = DataLoader(
+    cifar10_trainset, batch_size=64, shuffle=True, drop_last=True
+)
+
+# %%
+cifar10_wide_resnet34_10.load_state_dict(cifar10_wide_resnet34_10_state)
 
 models = {
-    "MNIST CNN": [mnist_cnn, mnist_trainloader, mnist_testloader],
-    "MNIST ResNet": [mnist_resnet, mnist_trainloader, mnist_testloader],
-    "CIFAR-10 CNN": [cifar10_cnn, cifar10_trainloader, cifar10_testloader],
-    "CIFAR-10 ResNet": [
-        cifar10_resnet,
-        cifar10_trainloader,
+    "CIFAR-10 Wide ResNet-34 10": [
+        cifar10_wide_resnet34_10,
+        cifar10_trainloader_droplast,
         cifar10_testloader,
     ],
 }
@@ -47,7 +52,7 @@ for model_name, (model, trainloader, testloader) in models.items():
     )
     torch.save(
         model.state_dict(),
-        os.path.join(SCRIPT_PATH, f"PGD {model_name}.model"),
+        os.path.join(SCRIPT_PATH, f"Free {model_name}.model"),
     )
 
     logging.info(f"Unattacked {model_name}")
