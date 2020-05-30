@@ -1,30 +1,26 @@
 import torch
+from clustre.helpers.datasets import mnist_testloader, mnist_trainloader
+from clustre.models import mnist_cnn, mnist_wide_resnet16_10
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-from clustre.helpers.datasets import mnist_testloader, mnist_trainloader
-from clustre.models import (
-    mnist_cnn,
-    mnist_fcnn,
-    mnist_resnet50,
-    mnist_wideresnet34_10,
-)
-
-N_EPOCHES = 100
+N_EPOCHES = 40
 LR = 1e-3
 
 torch.manual_seed(0)
 
 transform = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]
+    [
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+    ]
 )
 
 models = {
-    # "mnist_fcnn": mnist_fcnn,
     # "mnist_cnn": mnist_cnn,
-    # "mnist_resnet50": mnist_resnet50,
-    "mnist_wideresnet34_10": mnist_wideresnet34_10
+    # "mnist_resnet22": mnist_resnet22,
+    "mnist_wide_resnet16_10": mnist_wide_resnet16_10
 }
 
 for model_name, model in models.items():
@@ -43,7 +39,7 @@ for model_name, model in models.items():
         for images, labels in mnist_trainloader:
             images = images.to("cuda")
             labels = labels.to("cuda")
-            images = images.reshape(-1, 1, 28, 28)
+            images = images.reshape(-1, 3, 28, 28)
             optimizer.zero_grad()
             output = model(images)
             loss = criterion(output, labels)

@@ -11,8 +11,11 @@ from clustre.helpers.metrics import (
     classification_report_fgsm,
     classification_report_pgd,
 )
-from clustre.models import cifar10_cnn, cifar10_resnet
-from clustre.models.state_dicts import cifar10_cnn_state, cifar10_resnet_state
+from clustre.models import cifar10_cnn, cifar10_wide_resnet34_10
+from clustre.models.state_dicts import (
+    cifar10_cnn_state,
+    cifar10_wide_resnet34_10_state,
+)
 from torch import nn, optim
 
 # %%
@@ -25,15 +28,15 @@ log = logging.getLogger()
 
 # %%
 models = {
-    "CIFAR-10 CNN": [
-        cifar10_cnn,
-        cifar10_cnn_state,
-        cifar10_trainloader,
-        cifar10_testloader,
-    ],
-    "CIFAR-10 ResNet": [
-        cifar10_resnet,
-        cifar10_resnet_state,
+    # "CIFAR-10 CNN": [
+    #     cifar10_cnn,
+    #     cifar10_cnn_state,
+    #     cifar10_trainloader,
+    #     cifar10_testloader,
+    # ],
+    "CIFAR-10 Wide ResNet34-10": [
+        cifar10_wide_resnet34_10,
+        cifar10_wide_resnet34_10_state,
         cifar10_trainloader,
         cifar10_testloader,
     ],
@@ -41,11 +44,9 @@ models = {
 
 global_param = {"n_init": 3, "n_epoches": 40}
 
-new_models = {}
-
 # %%
 for model_name, (model, state, trainloader, testloader) in models.items():
-    for n_clusters in [300, 500, 1000, 2000, 3000, 5000, 7000, 10000, 20000]:
+    for n_clusters in [300, 500, 1000, 3000, 5000, 10000, 20000]:
         for cluster_with in ["original_data", "fgsm_perturb", "fgsm_input"]:
             model.load_state_dict(state)
             logging.info(f"Training {model_name}")
@@ -64,8 +65,11 @@ for model_name, (model, state, trainloader, testloader) in models.items():
                 **global_param,
             )
             torch.save(
-                model.state_dict(),
-                os.path.join(SCRIPT_PATH, f"Cluster {model_name}.model"),
+                new_model.state_dict(),
+                os.path.join(
+                    SCRIPT_PATH,
+                    f"Cluster {model_name} {cluster_with} {n_clusters}.model",
+                ),
             )
 
             logging.info(f"Unattacked {model_name}")

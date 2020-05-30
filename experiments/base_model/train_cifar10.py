@@ -1,14 +1,9 @@
 import torch
+from clustre.helpers.datasets import cifar10_testloader, cifar10_trainloader
+from clustre.models import cifar10_cnn, cifar10_wide_resnet34_10
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
-
-from clustre.helpers.datasets import cifar10_testloader, cifar10_trainloader
-from clustre.models import (
-    cifar10_cnn,
-    cifar10_resnet50,
-    cifar10_wideresnet34_10,
-)
 
 N_EPOCHES = 40
 LR = 1e-3
@@ -24,8 +19,8 @@ transform = transforms.Compose(
 
 models = {
     # "cifar10_cnn": cifar10_cnn,
-    # "cifar10_resnet50": cifar10_resnet50,
-    "cifar10_wideresnet34_10": cifar10_wideresnet34_10
+    # "cifar10_resnet34": cifar10_resnet34,
+    "cifar10_wide_resnet34_10": cifar10_wide_resnet34_10
 }
 
 for model_name, model in models.items():
