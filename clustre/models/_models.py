@@ -62,14 +62,17 @@ mnist_fcnn = MnistFcnn()
 
 mnist_cnn = MnistCnn()
 
-mnist_resnet = models.resnet18(pretrained=True)
-mnist_resnet.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
-mnist_resnet.fc = nn.Linear(in_features=512, out_features=10, bias=True)
+mnist_resnet50 = models.resnet50(pretrained=True)
+mnist_resnet50.conv1 = nn.Conv2d(
+    1, 64, kernel_size=7, stride=2, padding=3, bias=False
+)
+mnist_resnet50.fc = nn.Linear(in_features=2048, out_features=10, bias=True)
+
 
 cifar10_cnn = CifarCnn()
 
-cifar10_resnet = models.resnet18(pretrained=True)
-cifar10_resnet.fc = nn.Linear(in_features=512, out_features=10, bias=True)
+cifar10_resnet50 = models.resnet50(pretrained=True)
+cifar10_resnet50.fc = nn.Linear(in_features=2048, out_features=10, bias=True)
 
 cifar10_wideresnet = models.wide_resnet50_2(pretrained=True)
 cifar10_wideresnet.fc = nn.Linear(in_features=2048, out_features=10, bias=True)
