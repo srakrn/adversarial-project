@@ -11,8 +11,8 @@ from clustre.helpers.metrics import (
     classification_report_fgsm,
     classification_report_pgd,
 )
-from clustre.models import mnist_cnn, mnist_resnet50
-from clustre.models.state_dicts import mnist_cnn_state, mnist_resnet50_state
+from clustre.models import mnist_cnn, mnist_resnet18
+from clustre.models.state_dicts import mnist_cnn_state, mnist_resnet18_state
 from torch import nn, optim
 
 # %%
@@ -32,8 +32,8 @@ models = {
     #     mnist_testloader,
     # ],
     "MNIST ResNet": [
-        mnist_resnet50,
-        mnist_resnet50_state,
+        mnist_resnet18,
+        mnist_resnet18_state,
         mnist_trainloader,
         mnist_testloader,
     ],
@@ -45,8 +45,8 @@ new_models = {}
 
 # %%
 for model_name, (model, state, trainloader, testloader) in models.items():
-    for n_clusters in [300, 500, 1000, 3000, 5000, 10000, 20000]:
-        for cluster_with in ["original_data", "fgsm_perturb", "fgsm_input"]:
+    for n_clusters in [500, 1000, 5000, 10000, 3000, 700, 300, 20000]:
+        for cluster_with in ["original_data", "fgsm_perturb"]:
             model.load_state_dict(state)
             logging.info(f"Training {model_name}")
             logging.info(
