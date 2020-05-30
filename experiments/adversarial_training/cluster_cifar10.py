@@ -46,8 +46,8 @@ global_param = {"n_init": 3, "n_epoches": 40}
 
 # %%
 for model_name, (model, state, trainloader, testloader) in models.items():
-    for n_clusters in [300, 500, 1000, 3000, 5000, 10000, 20000]:
-        for cluster_with in ["original_data", "fgsm_perturb", "fgsm_input"]:
+    for cluster_with in ["original_data", "fgsm_perturb"]:
+        for n_clusters in [500, 1000, 3000, 5000, 10000]:
             model.load_state_dict(state)
             logging.info(f"Training {model_name}")
             logging.info(
