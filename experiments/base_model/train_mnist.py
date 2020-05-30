@@ -1,13 +1,12 @@
 import torch
-import torch.nn.functional as F
 from torch import nn, optim
 from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+from torchvision import transforms
 
 from clustre.helpers.datasets import mnist_testloader, mnist_trainloader
-from clustre.models import mnist_cnn, mnist_fcnn, mnist_resnet
+from clustre.models import mnist_cnn, mnist_fcnn, mnist_resnet50
 
-N_EPOCHES = 10
+N_EPOCHES = 100
 LR = 1e-3
 
 torch.manual_seed(0)
@@ -17,9 +16,9 @@ transform = transforms.Compose(
 )
 
 models = {
-    "mnist_fcnn": mnist_fcnn,
-    "mnist_cnn": mnist_cnn,
-    "mnist_resnet": mnist_resnet,
+    # "mnist_fcnn": mnist_fcnn,
+    # "mnist_cnn": mnist_cnn,
+    "mnist_resnet50": mnist_resnet50,
 }
 
 for model_name, model in models.items():
