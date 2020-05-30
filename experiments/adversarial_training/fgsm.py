@@ -16,22 +16,8 @@ from clustre.helpers.metrics import (
     classification_report_fgsm,
     classification_report_pgd,
 )
-from clustre.models import (
-    cifar10_cnn,
-    cifar10_resnet,
-    cifar10_wideresnet,
-    mnist_cnn,
-    mnist_fcnn,
-    mnist_resnet,
-)
-from clustre.models.state_dicts import (
-    cifar10_cnn_state,
-    cifar10_resnet_state,
-    cifar10_wideresnet_state,
-    mnist_cnn_state,
-    mnist_fcnn_state,
-    mnist_resnet_state,
-)
+from clustre.models import cifar10_wide_resnet34_10
+from clustre.models.state_dicts import cifar10_wide_resnet34_10_state
 from torch import nn, optim
 
 # %%
@@ -42,19 +28,11 @@ logging.basicConfig(filename=LOG_FILENAME, level=logging.INFO, format=FORMAT)
 log = logging.getLogger()
 
 # %%
-mnist_fcnn.load_state_dict(mnist_fcnn_state)
-mnist_cnn.load_state_dict(mnist_cnn_state)
-mnist_resnet.load_state_dict(mnist_resnet_state)
-cifar10_cnn.load_state_dict(cifar10_cnn_state)
-cifar10_resnet.load_state_dict(cifar10_resnet_state)
-cifar10_wideresnet.load_state_dict(cifar10_wideresnet_state)
+cifar10_wide_resnet34_10.load_state_dict(cifar10_wide_resnet34_10_state)
 
 models = {
-    "MNIST CNN": [mnist_cnn, mnist_trainloader, mnist_testloader],
-    "MNIST ResNet": [mnist_resnet, mnist_trainloader, mnist_testloader],
-    "CIFAR-10 CNN": [cifar10_cnn, cifar10_trainloader, cifar10_testloader],
-    "CIFAR-10 ResNet": [
-        cifar10_resnet,
+    "CIFAR-10 Wide ResNet-34 10": [
+        cifar10_wide_resnet34_10,
         cifar10_trainloader,
         cifar10_testloader,
     ],
@@ -71,6 +49,9 @@ for model_name, (model, trainloader, testloader) in models.items():
         model.state_dict(),
         os.path.join(SCRIPT_PATH, f"FGSM {model_name}.model"),
     )
+
+    logging.info(f"Unattacked {model_name}")
+    logging.info(classification_report(model, testloader, device="cuda"))
 
     logging.info(f"FGSM attacked {model_name}")
     logging.info(classification_report_fgsm(model, testloader, device="cuda"))
