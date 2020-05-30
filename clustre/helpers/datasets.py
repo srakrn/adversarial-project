@@ -16,11 +16,7 @@ def get_time():
 
 
 mnist_transform = transforms.Compose(
-    [
-        transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,)),
-        transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
-    ]
+    [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,)),]
 )
 
 cifar10_transform = transforms.Compose(

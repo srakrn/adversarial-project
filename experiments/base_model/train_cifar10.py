@@ -1,6 +1,6 @@
 import torch
 from clustre.helpers.datasets import cifar10_testloader, cifar10_trainloader
-from clustre.models import cifar10_cnn, cifar10_wide_resnet34_10
+from clustre.models import cifar10_cnn, cifar10_wide_resnet34_5
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
@@ -10,17 +10,10 @@ LR = 1e-3
 
 torch.manual_seed(0)
 
-transform = transforms.Compose(
-    [
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    ]
-)
-
 models = {
     # "cifar10_cnn": cifar10_cnn,
     # "cifar10_resnet34": cifar10_resnet34,
-    "cifar10_wide_resnet34_10": cifar10_wide_resnet34_10
+    "cifar10_wide_resnet34_5": cifar10_wide_resnet34_5
 }
 
 for model_name, model in models.items():

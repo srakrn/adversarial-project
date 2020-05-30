@@ -60,28 +60,21 @@ class CifarCnn(nn.Module):
         return x
 
 
-def wide_resnet50_10(**kwargs):
-    kwargs["width_per_group"] = 64 * 10
-    return _resnet(
-        "wide_resnet50_2", Bottleneck, [3, 4, 6, 3], False, False, **kwargs
-    )
-
-
 mnist_fcnn = MnistFcnn()
 
 mnist_cnn = MnistCnn()
 
-mnist_resnet50 = models.resnet50(pretrained=True)
-mnist_resnet50.conv1 = nn.Conv2d(
+mnist_resnet18 = models.resnet18(pretrained=True)
+mnist_resnet18.conv1 = nn.Conv2d(
     1, 64, kernel_size=7, stride=2, padding=3, bias=False
 )
-mnist_resnet50.fc = nn.Linear(in_features=2048, out_features=10, bias=True)
-
-mnist_wide_resnet16_10 = Wide_ResNet(16, 10, 0, 10)
+mnist_resnet18.fc = nn.Linear(in_features=512, out_features=10, bias=True)
 
 cifar10_cnn = CifarCnn()
 
 cifar10_resnet50 = models.resnet50(pretrained=True)
 cifar10_resnet50.fc = nn.Linear(in_features=2048, out_features=10, bias=True)
+
+cifar10_wide_resnet34_5 = Wide_ResNet(34, 10, 0, 5)
 
 cifar10_wide_resnet34_10 = Wide_ResNet(34, 10, 0, 10)
