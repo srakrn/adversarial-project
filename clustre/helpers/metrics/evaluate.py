@@ -33,23 +33,27 @@ def __main__():
 
     parser.add_argument("arch", type=str)
     parser.add_argument("state_dict", type=str)
+    parser.add_argument("--device", default="cuda", type=str)
     args = parser.parse_args()
 
     arch = args.arch
     state_path = args.state_dict
+    device = args.device
 
     model, testloader = model_structures[arch]
     state = torch.load(state_path)
     model.load_state_dict(state)
 
+    print(f"Testing {arch} with {state_path} on {device}\n")
+
     print(f"Unattacked {arch}")
-    print(classification_report(model, testloader, device="cuda"))
+    print(classification_report(model, testloader, device=device))
 
     print(f"FGSM attacked {arch}")
-    print(classification_report_fgsm(model, testloader, device="cuda"))
+    print(classification_report_fgsm(model, testloader, device=device))
 
     print(f"PGD attacked {arch}")
-    print(classification_report_pgd(model, testloader, device="cuda"))
+    print(classification_report_pgd(model, testloader, device=device))
 
 
 if __name__ == "__main__":
