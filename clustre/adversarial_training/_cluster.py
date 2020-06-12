@@ -3,11 +3,12 @@ from datetime import datetime
 
 import numpy as np
 import numpy.linalg as la
+from dateutil.relativedelta import relativedelta
 from sklearn.cluster import KMeans
 
 import torch
 from clustre.attacking import fgsm, fgsm_perturbs, pgd, pgd_perturbs
-from clustre.helpers import delta_time_string, get_time
+from clustre.helpers import delta_time_string, delta_tostr, get_time
 from libKMCUDA import kmeans_cuda
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
@@ -256,11 +257,17 @@ def cluster_training(
             log.info(
                 f"\t\tTime used for PGD generation: {delta_time_string(pgd_end, pgd_start)}"
             )
-            back_start = datetime.now()
         # Running loss, for reference
         running_loss = 0
+
+        # Store time to be calculated
+        tensor_move_time = relativedelta()
+        calc_input_time = relativedelta()
+        input_time = relativedelta()
+        backprop_time = relativedelta()
         # Iterate over minibatches of trainloader
         for i, (images, labels, cluster_idx) in enumerate(adversarialloader):
+            tensor_move_timestamp = datetime.now()
             # Move tensors to device if desired
             if device is not None:
                 images = images.to(device)
@@ -268,23 +275,41 @@ def cluster_training(
                 cluster_perturbs = cluster_perturbs.to(device)
             optimizer.zero_grad()
 
+            calc_input_timestamp = datetime.now()
             X_input = images + cluster_perturbs[cluster_idx.numpy()].reshape(
                 images.shape
             )
+            input_timestamp = datetime.now()
             output = model(X_input)
+            backprop_timestamp = datetime.now()
             loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
+            end_timestamp = datetime.now()
 
             running_loss += loss.item()
+
+            tensor_move_time += relativedelta(
+                calc_input_timestamp, tensor_move_timestamp
+            )
+            calc_input_time += relativedelta(
+                input_timestamp, calc_input_timestamp
+            )
+            input_time += relativedelta(backprop_timestamp, input_timestamp)
+            backprop_time += relativedelta(end_timestamp, backprop_timestamp)
+
         else:
             if log is not None:
                 back_end = datetime.now()
                 log.info(
-                    f"\t\tTime used for backprop: {delta_time_string(back_end, back_start)}"
+                    f"\t\tTensor move time: {delta_tostr(tensor_move_time)}"
                 )
-                log.info(f"\t\tThis epoch terminates at {get_time()}")
-                log.info(f"\tTraining loss: {running_loss/len(trainloader)}")
+                log.info(
+                    f"\t\tPerturb matching time: {delta_tostr(calc_input_time)}"
+                )
+                log.info(f"\t\tInput time: {delta_tostr(input_time)}")
+                log.info(f"\t\tBackprop time: {delta_tostr(backprop_time)}")
+                log.info(f"\t\tTraining loss: {running_loss/len(trainloader)}")
     if log is not None:
         log.info(f"Training ended: {get_time()}")
     return model

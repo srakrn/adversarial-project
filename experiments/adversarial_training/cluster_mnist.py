@@ -39,13 +39,13 @@ models = {
     ],
 }
 
-global_param = {"n_init": 3, "n_epoches": 40}
+global_param = {"n_init": 3, "n_epoches": 10}
 
 new_models = {}
 
 # %%
 for model_name, (model, state, trainloader, testloader) in models.items():
-    for n_clusters in [500, 1000, 5000, 10000, 3000, 700, 300, 20000]:
+    for n_clusters in [1000, 5000]:
         for cluster_with in ["original_data", "fgsm_perturb"]:
             model.load_state_dict(state)
             logging.info(f"Training {model_name}")

@@ -1,14 +1,16 @@
 import os
 import time
+from datetime import datetime
 
 import numpy as np
+from dateutil.relativedelta import relativedelta
 from sklearn.cluster import KMeans
 from sklearn.metrics import classification_report
 
 import torch
 import torch.nn.functional as F
 from clustre.attacking import pgd
-from clustre.helpers import get_time
+from clustre.helpers import delta_tostr, get_time
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
 
@@ -66,6 +68,9 @@ def pgd_training(
 
     # Iterate over e times of epoches
     for e in range(n_epoches):
+        pgd_time = None
+        forward_time = None
+        backprop_time = None
         # Running loss, for reference
         running_loss = 0
         # Log epoches
@@ -78,6 +83,7 @@ def pgd_training(
                 images = images.to(device)
                 labels = labels.to(device)
             # Calculate perturbations
+            pgd_timestamp = datetime.now()
             adver_images = pgd(
                 model,
                 criterion,
@@ -90,14 +96,46 @@ def pgd_training(
             )
             optimizer.zero_grad()
 
+            forward_timestamp = datetime.now()
+
             output = model(adver_images)
+
+            backprop_timestamp = datetime.now()
+
             loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
+            finish_timestamp = datetime.now()
 
             running_loss += loss.item()
+
+            if pgd_time is None:
+                pgd_time = relativedelta(forward_timestamp, pgd_timestamp)
+            else:
+                pgd_time += relativedelta(forward_timestamp, pgd_timestamp)
+
+            if forward_time is None:
+                forward_time = relativedelta(
+                    backprop_timestamp, forward_timestamp
+                )
+            else:
+                forward_time += relativedelta(
+                    backprop_timestamp, forward_timestamp
+                )
+
+            if backprop_time is None:
+                backprop_time = relativedelta(
+                    finish_timestamp, backprop_timestamp
+                )
+            else:
+                backprop_time += relativedelta(
+                    finish_timestamp, backprop_timestamp
+                )
         else:
             if log is not None:
+                log.info(f"\tPGD time: {delta_tostr(pgd_time)}")
+                log.info(f"\tForward time: {delta_tostr(forward_time)}")
+                log.info(f"\tBackprop time: {delta_tostr(backprop_time)}")
                 log.info(f"\tTraining loss: {running_loss/len(trainloader)}")
     if log is not None:
         log.info(f"Training ended: {get_time()}")
