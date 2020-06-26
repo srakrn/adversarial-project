@@ -6,20 +6,17 @@ import torch
 from clustre.adversarial_training import free_training
 from clustre.helpers.datasets import (
     cifar10_testloader,
-    cifar10_trainloader,
-    cifar10_trainset,
+    cifar10_trainloader_droplast,
     mnist_testloader,
-    mnist_trainloader,
-    mnist_trainset,
+    mnist_trainloader_droplast,
 )
 from clustre.helpers.metrics import (
     classification_report,
     classification_report_fgsm,
     classification_report_pgd,
 )
-from clustre.models import cifar10_wide_resnet34_10
-from clustre.models.state_dicts import cifar10_wide_resnet34_10_state
-from torch.utils.data import DataLoader
+from clustre.models import mnist_resnet18
+from clustre.models.state_dicts import mnist_resnet18_state
 
 # %%
 LOG_FILENAME = os.path.abspath(__file__)[:-3] + "_log.txt"
@@ -29,19 +26,14 @@ logging.basicConfig(filename=LOG_FILENAME, level=logging.INFO, format=FORMAT)
 log = logging.getLogger()
 
 # %%
-cifar10_trainloader_droplast = DataLoader(
-    cifar10_trainset, batch_size=64, shuffle=True, drop_last=True
-)
-
-# %%
-cifar10_wide_resnet34_10.load_state_dict(cifar10_wide_resnet34_10_state)
+mnist_resnet18.load_state_dict(mnist_resnet18_state)
 
 models = {
-    "CIFAR-10 Wide ResNet-34 10": [
-        cifar10_wide_resnet34_10,
-        cifar10_trainloader_droplast,
-        cifar10_testloader,
-    ],
+    "MNIST ResNet-18": [
+        mnist_resnet18,
+        mnist_trainloader_droplast,
+        mnist_testloader,
+    ]
 }
 
 # %%

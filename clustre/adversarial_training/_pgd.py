@@ -68,9 +68,10 @@ def pgd_training(
 
     # Iterate over e times of epoches
     for e in range(n_epoches):
-        pgd_time = None
-        forward_time = None
-        backprop_time = None
+        pgd_time = relativedelta()
+        move_time = relativedelta()
+        forward_time = relativedelta()
+        backprop_time = relativedelta()
         # Running loss, for reference
         running_loss = 0
         # Log epoches
@@ -79,6 +80,7 @@ def pgd_training(
         # Iterate over minibatches of trainloader
         for i, (images, labels) in enumerate(trainloader):
             # Move tensors to device if desired
+            move_timestamp = datetime.now()
             if device is not None:
                 images = images.to(device)
                 labels = labels.to(device)
@@ -109,30 +111,17 @@ def pgd_training(
 
             running_loss += loss.item()
 
-            if pgd_time is None:
-                pgd_time = relativedelta(forward_timestamp, pgd_timestamp)
-            else:
-                pgd_time += relativedelta(forward_timestamp, pgd_timestamp)
-
-            if forward_time is None:
-                forward_time = relativedelta(
-                    backprop_timestamp, forward_timestamp
-                )
-            else:
-                forward_time += relativedelta(
-                    backprop_timestamp, forward_timestamp
-                )
-
-            if backprop_time is None:
-                backprop_time = relativedelta(
-                    finish_timestamp, backprop_timestamp
-                )
-            else:
-                backprop_time += relativedelta(
-                    finish_timestamp, backprop_timestamp
-                )
+            move_time += relativedelta(pgd_timestamp, move_timestamp)
+            pgd_time += relativedelta(forward_timestamp, pgd_timestamp)
+            forward_time += relativedelta(
+                backprop_timestamp, forward_timestamp
+            )
+            backprop_time += relativedelta(
+                finish_timestamp, backprop_timestamp
+            )
         else:
             if log is not None:
+                log.info(f"\tMove time: {delta_tostr(move_time)}")
                 log.info(f"\tPGD time: {delta_tostr(pgd_time)}")
                 log.info(f"\tForward time: {delta_tostr(forward_time)}")
                 log.info(f"\tBackprop time: {delta_tostr(backprop_time)}")
