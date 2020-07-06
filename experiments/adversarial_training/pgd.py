@@ -27,12 +27,12 @@ mnist_cnn.load_state_dict(mnist_cnn_state)
 mnist_resnet18.load_state_dict(mnist_resnet18_state)
 
 models = {
-    "MNIST CNN": [mnist_cnn, mnist_trainloader, mnist_testloader, False],
+    "MNIST CNN": [mnist_cnn, mnist_trainloader, mnist_testloader, True],
     "MNIST ResNet18": [
         mnist_resnet18,
         mnist_trainloader,
         mnist_testloader,
-        True,
+        False,
     ],
 }
 
@@ -41,7 +41,7 @@ for model_name, (model, trainloader, testloader, to_run) in models.items():
     if to_run:
         logging.info(f"Training {model_name}")
         new_model = pgd_training(
-            model, trainloader, n_epoches=8, device="cuda", log=log
+            model, trainloader, n_epoches=10, device="cuda", log=log
         )
         torch.save(
             model.state_dict(),

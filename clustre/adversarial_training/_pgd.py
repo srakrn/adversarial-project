@@ -62,6 +62,9 @@ def pgd_training(
     # Log starting time if desired
     if log is not None:
         log.info(f"Training started: {get_time()}")
+        log.info(
+            "n_epoches,move_time_pgd_time,forward_time,backprop_time,training_loss"
+        )
 
     # Create an optimiser instance
     optimizer = optimizer(model.parameters(), **optimizer_params)
@@ -74,9 +77,6 @@ def pgd_training(
         backprop_time = relativedelta()
         # Running loss, for reference
         running_loss = 0
-        # Log epoches
-        if log is not None:
-            log.info(f"\t{get_time()}: Epoch {e+1}")
         # Iterate over minibatches of trainloader
         for i, (images, labels) in enumerate(trainloader):
             # Move tensors to device if desired
@@ -121,11 +121,14 @@ def pgd_training(
             )
         else:
             if log is not None:
-                log.info(f"\tMove time: {delta_tostr(move_time)}")
-                log.info(f"\tPGD time: {delta_tostr(pgd_time)}")
-                log.info(f"\tForward time: {delta_tostr(forward_time)}")
-                log.info(f"\tBackprop time: {delta_tostr(backprop_time)}")
-                log.info(f"\tTraining loss: {running_loss/len(trainloader)}")
+                log.info(
+                    f"{e},\
+{delta_tostr(move_time)},\
+{delta_tostr(pgd_time)},\
+{delta_tostr(forward_time)},\
+{delta_tostr(backprop_time)},\
+{running_loss/len(trainloader)}"
+                )
     if log is not None:
         log.info(f"Training ended: {get_time()}")
     return model

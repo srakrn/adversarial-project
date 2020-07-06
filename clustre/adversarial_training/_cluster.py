@@ -215,10 +215,7 @@ def cluster_training(
     adversarialloader = DataLoader(adversarial_dataset, batch_size=128)
     if log is not None:
         kmeans_end = datetime.now()
-        log.info(f"k-Means ended: {get_time()}")
-        log.info(
-            f"k-Means time used: {delta_time_string(kmeans_end, kmeans_start)}"
-        )
+        kmeans_time = delta_time_string(kmeans_end, kmeans_start)
 
     # Move to device if desired
     if device is not None:
@@ -238,10 +235,6 @@ def cluster_training(
     for e in range(n_epoches):
         # Log epoches
         if log is not None:
-            log.info(f"\tEpoch {e+1}")
-        # Log epoches
-        if log is not None:
-            log.info(f"\t\tThis epoch starts at {get_time()}")
             pgd_start = datetime.now()
         # Generate PGD examples
         cluster_perturbs = pgd_perturbs(
@@ -254,9 +247,7 @@ def cluster_training(
         )
         if log is not None:
             pgd_end = datetime.now()
-            log.info(
-                f"\t\tTime used for PGD generation: {delta_time_string(pgd_end, pgd_start)}"
-            )
+            pgd_time = delta_time_string(pgd_end, pgd_start)
         # Running loss, for reference
         running_loss = 0
 
@@ -300,7 +291,7 @@ def cluster_training(
 
         else:
             if log is not None:
-                back_end = datetime.now()
+                log.info(f"{delta_tostr(kmeans_time/n_epoches)}")
                 log.info(
                     f"\t\tTensor move time: {delta_tostr(tensor_move_time)}"
                 )

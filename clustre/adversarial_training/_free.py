@@ -25,7 +25,7 @@ def free_training(
         model.to(device)
     # Log starting time if desired
     if log is not None:
-        log.info(f"Training started: {get_time()}")
+        log.info("n_epoch,replay,move_time,input_gen,forward,backprop,update")
 
     # Create an optimiser instance
     optimizer = optimizer(model.parameters(), **optimizer_params)
@@ -35,9 +35,6 @@ def free_training(
     for e in range(math.ceil(n_epoches / hop_step)):
         # Running loss, for reference
         running_loss = 0
-        # Log epoches
-        if log is not None:
-            log.info(f"\t{get_time()}: Epoch {e+1}")
         move_time = relativedelta()
         time = [
             {
@@ -100,22 +97,14 @@ def free_training(
             running_loss += loss.item()
         else:
             if log is not None:
-                log.info(f"\t\tMoving time: {move_time}")
                 for i in range(hop_step):
-                    log.info(f"\t\tReplay: {i+1}")
                     log.info(
-                        f"\t\t\tInput generation: {delta_tostr(time[i]['input_generation'])}"
+                        f"{e},{i},{delta_tostr(move_time/hop_step)}.\
+{delta_tostr(time[i]['input_generation'])},\
+{delta_tostr(time[i]['forward_time'])},\
+{delta_tostr(time[i]['backprop_time'])},\
+{delta_tostr(time[i]['update_delta'])}"
                     )
-                    log.info(
-                        f"\t\t\tForward: {delta_tostr(time[i]['forward_time'])}"
-                    )
-                    log.info(
-                        f"\t\t\tBackprop: {delta_tostr(time[i]['backprop_time'])}"
-                    )
-                    log.info(
-                        f"\t\t\tUpdate delta: {delta_tostr(time[i]['update_delta'])}"
-                    )
-                log.info(f"\t\tTraining loss: {running_loss/len(trainloader)}")
     if log is not None:
         log.info(f"Training ended: {get_time()}")
 

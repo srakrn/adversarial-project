@@ -15,8 +15,8 @@ from clustre.helpers.metrics import (
     classification_report_fgsm,
     classification_report_pgd,
 )
-from clustre.models import mnist_resnet18
-from clustre.models.state_dicts import mnist_resnet18_state
+from clustre.models import mnist_cnn
+from clustre.models.state_dicts import mnist_cnn_state
 
 # %%
 LOG_FILENAME = os.path.abspath(__file__)[:-3] + "_log.txt"
@@ -26,21 +26,17 @@ logging.basicConfig(filename=LOG_FILENAME, level=logging.INFO, format=FORMAT)
 log = logging.getLogger()
 
 # %%
-mnist_resnet18.load_state_dict(mnist_resnet18_state)
+mnist_cnn.load_state_dict(mnist_cnn_state)
 
 models = {
-    "MNIST ResNet-18": [
-        mnist_resnet18,
-        mnist_trainloader_droplast,
-        mnist_testloader,
-    ]
+    "MNIST CNN": [mnist_cnn, mnist_trainloader_droplast, mnist_testloader]
 }
 
 # %%
 for model_name, (model, trainloader, testloader) in models.items():
     logging.info(f"Training {model_name}")
     new_model = free_training(
-        model, trainloader, n_epoches=40, device="cuda", log=log
+        model, trainloader, n_epoches=10, device="cuda", log=log
     )
     torch.save(
         model.state_dict(),

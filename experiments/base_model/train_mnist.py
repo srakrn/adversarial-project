@@ -33,7 +33,9 @@ models = {"mnist_resnet18": mnist_resnet18}
 
 for model_name, model in models.items():
     logging.info("Model: {}".format(model_name))
-
+    logging.info(
+        "n_epoch,train_loss,test_loss,move_time,forward_time,backprop_time"
+    )
     model = model.to("cuda")
 
     criterion = nn.CrossEntropyLoss()
@@ -79,11 +81,7 @@ for model_name, model in models.items():
             testing_loss /= len(mnist_testloader)
             testing_losses.append(testing_loss)
         logging.info(
-            f"Epoch: {e}\n\tTrain: {training_loss} Test: {testing_loss}"
+            f"{e},{training_loss},{testing_loss},{delta_tostr(move_time)},{delta_tostr(forward_time)},{delta_tostr(backprop_time)}"
         )
-        logging.info(f"\tMove time: {delta_tostr(move_time)}")
-        logging.info(f"\tForward time: {delta_tostr(forward_time)}")
-        logging.info(f"\tBackprop time: {delta_tostr(backprop_time)}")
-
         if testing_loss <= min(testing_losses):
             torch.save(model.state_dict(), "{}.model".format(model_name))
