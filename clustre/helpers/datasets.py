@@ -46,16 +46,16 @@ cifar10_testset = datasets.CIFAR10(
     transform=cifar10_transform,
 )
 
-mnist_trainloader = DataLoader(mnist_trainset, batch_size=128, shuffle=True)
+mnist_trainloader = DataLoader(mnist_trainset, batch_size=128, shuffle=False)
 mnist_trainloader_droplast = DataLoader(
-    mnist_trainset, batch_size=128, shuffle=True, drop_last=True
+    mnist_trainset, batch_size=128, shuffle=False, drop_last=True
 )
-mnist_testloader = DataLoader(mnist_testset, batch_size=32, shuffle=True)
+mnist_testloader = DataLoader(mnist_testset, batch_size=32, shuffle=False)
 
 cifar10_trainloader = DataLoader(
-    cifar10_trainset, batch_size=128, shuffle=True
+    cifar10_trainset, batch_size=128, shuffle=False
 )
 cifar10_trainloader_droplast = DataLoader(
-    cifar10_trainset, batch_size=128, shuffle=True, drop_last=True
+    cifar10_trainset, batch_size=128, shuffle=False, drop_last=True
 )
-cifar10_testloader = DataLoader(cifar10_testset, batch_size=32, shuffle=True)
+cifar10_testloader = DataLoader(cifar10_testset, batch_size=32, shuffle=False)
