@@ -84,7 +84,14 @@ def fgsm_training(
             # Calculate perturbations
             fgsm_timestamp = datetime.now()
             adver_images = fgsm(
-                model, criterion, images, labels, epsilon, random, alpha, device=device
+                model,
+                criterion,
+                images,
+                labels,
+                epsilon,
+                random,
+                alpha,
+                device=device,
             )
             optimizer.zero_grad()
 
@@ -115,6 +122,7 @@ def fgsm_training(
 {delta_tostr(forward_time)},\
 {delta_tostr(backprop_time)},\
 {running_loss/len(trainloader)}"
+                )
     if log is not None:
         log.info(f"Training ended: {get_time()}")
     return model
