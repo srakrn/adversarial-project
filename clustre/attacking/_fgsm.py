@@ -1,8 +1,4 @@
 import torch
-import torch.nn.functional as F
-from torch import nn, optim
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
 
 
 def fgsm(model, criterion, image, label, epsilon=0.3, device=None):

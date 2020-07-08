@@ -1,10 +1,5 @@
-from math import inf
-
 import torch
-import torch.nn.functional as F
-from torch import nn, optim
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+from torch import optim
 
 
 def maxloss(
