@@ -18,6 +18,8 @@ def fgsm_training(
     trainloader,
     n_epoches=10,
     epsilon=0.3,
+    random=False,
+    alpha=0.1,
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
     optimizer_params={},
@@ -82,7 +84,7 @@ def fgsm_training(
             # Calculate perturbations
             fgsm_timestamp = datetime.now()
             adver_images = fgsm(
-                model, criterion, images, labels, epsilon, device=device
+                model, criterion, images, labels, epsilon, random, alpha, device=device
             )
             optimizer.zero_grad()
 
