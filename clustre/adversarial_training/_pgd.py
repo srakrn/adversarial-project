@@ -3,16 +3,16 @@ import time
 from datetime import datetime
 
 import numpy as np
+import torch
+import torch.nn.functional as F
 from dateutil.relativedelta import relativedelta
 from sklearn.cluster import KMeans
 from sklearn.metrics import classification_report
-
-import torch
-import torch.nn.functional as F
-from clustre.attacking import pgd
-from clustre.helpers import delta_tostr, get_time
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset
+
+from clustre.attacking import pgd
+from clustre.helpers import delta_tostr, get_time
 
 
 def pgd_training(
@@ -63,7 +63,7 @@ def pgd_training(
     if log is not None:
         log.info(f"Training started: {get_time()}")
         log.info(
-            "n_epoches,move_time_pgd_time,forward_time,backprop_time,training_loss"
+            "n_epoches,move_time,pgd_time,forward_time,backprop_time,training_loss"
         )
 
     # Create an optimiser instance
