@@ -15,7 +15,16 @@ def fgsm(model, criterion, image, label, epsilon=0.3, device=None):
     return attack_image
 
 
-def fgsm_perturbs(model, criterion, image, label, epsilon=0.3, device=None):
+def fgsm_perturbs(
+    model,
+    criterion,
+    image,
+    label,
+    epsilon=0.3,
+    random=False,
+    alpha=0.1,
+    device=None,
+):
     if len(image.shape) == 3:
         image.unsqueeze_(0)
         label.unsqueeze_(0)
@@ -27,11 +36,21 @@ def fgsm_perturbs(model, criterion, image, label, epsilon=0.3, device=None):
         image = image.to(device)
         label = label.to(device)
 
-    image.requires_grad = True
+    perturb = torch.zeros_like(image)
+    if random:
+        perturb.uniform_(-epsilon, epsilon)
+    perturb = perturb.to(image.device)
 
-    output = model(image)
+    image.requires_grad = True
+    perturb.requires_grad = True
+
+    output = model(image + perturb)
     loss = criterion(output, label)
     loss.backward()
 
-    perturb = image.grad.data.sign() * epsilon
+    grad = perturb.grad.detach()
+    perturb.data = torch.clamp(
+        perturb + alpha * torch.sign(grad), -epsilon, epsilon
+    )
+
     return perturb
