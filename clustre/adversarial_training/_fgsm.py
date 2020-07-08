@@ -54,12 +54,19 @@ def fgsm_training(
     # Log starting time if desired
     if log is not None:
         log.info(f"Training started: {get_time()}")
+        log.info(
+            "n_epoches,move_time,fgsm_time,forward_time,backprop_time,training_loss"
+        )
 
     # Create an optimiser instance
     optimizer = optimizer(model.parameters(), **optimizer_params)
 
     # Iterate over e times of epoches
     for e in range(n_epoches):
+        fgsm_time = relativedelta()
+        move_time = relativedelta()
+        forward_time = relativedelta()
+        backprop_time = relativedelta()
         # Running loss, for reference
         running_loss = 0
         # Log epoches
@@ -68,24 +75,44 @@ def fgsm_training(
         # Iterate over minibatches of trainloader
         for i, (images, labels) in enumerate(trainloader):
             # Move tensors to device if desired
+            move_timestamp = datetime.now()
             if device is not None:
                 images = images.to(device)
                 labels = labels.to(device)
             # Calculate perturbations
+            fgsm_timestamp = datetime.now()
             adver_images = fgsm(
                 model, criterion, images, labels, epsilon, device=device
             )
             optimizer.zero_grad()
 
+            forward_timestamp = datetime.now()
             output = model(adver_images)
+            backprop_timestamp = datetime.now()
             loss = criterion(output, labels)
             loss.backward()
             optimizer.step()
+            finish_timestamp = datetime.now()
 
             running_loss += loss.item()
+
+            move_time += relativedelta(fgsm_timestamp, move_timestamp)
+            fgsm_time += relativedelta(forward_timestamp, fgsm_timestamp)
+            forward_time += relativedelta(
+                backprop_timestamp, forward_timestamp
+            )
+            backprop_time += relativedelta(
+                finish_timestamp, backprop_timestamp
+            )
         else:
             if log is not None:
-                log.info(f"\tTraining loss: {running_loss/len(trainloader)}")
+                log.info(
+                    f"{e},\
+{delta_tostr(move_time)},\
+{delta_tostr(fgsm_time)},\
+{delta_tostr(forward_time)},\
+{delta_tostr(backprop_time)},\
+{running_loss/len(trainloader)}"
     if log is not None:
         log.info(f"Training ended: {get_time()}")
     return model
