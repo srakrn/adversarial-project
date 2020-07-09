@@ -1,10 +1,8 @@
 # %%
 import logging
 import os
-import sys
 
 import torch
-from torch import nn, optim
 
 from clustre.adversarial_training import fgsm_training
 from clustre.helpers.datasets import (
@@ -18,8 +16,8 @@ from clustre.helpers.metrics import (
     classification_report_fgsm,
     classification_report_pgd,
 )
-from clustre.models import cifar10_wide_resnet34_10
-from clustre.models.state_dicts import cifar10_wide_resnet34_10_state
+from clustre.models import mnist_resnet18
+from clustre.models.state_dicts import mnist_resnet18_state
 
 # %%
 LOG_FILENAME = os.path.abspath(__file__)[:-3] + "_log.txt"
@@ -29,14 +27,10 @@ logging.basicConfig(filename=LOG_FILENAME, level=logging.INFO, format=FORMAT)
 log = logging.getLogger()
 
 # %%
-cifar10_wide_resnet34_10.load_state_dict(cifar10_wide_resnet34_10_state)
+mnist_resnet18.load_state_dict(mnist_resnet18_state)
 
 models = {
-    "CIFAR-10 Wide ResNet-34 10": [
-        cifar10_wide_resnet34_10,
-        cifar10_trainloader,
-        cifar10_testloader,
-    ],
+    "MNIST ResNet18": [mnist_resnet18, mnist_trainloader, mnist_testloader],
 }
 
 
@@ -59,3 +53,6 @@ for model_name, (model, trainloader, testloader) in models.items():
 
     logging.info(f"PGD attacked {model_name}")
     logging.info(classification_report_pgd(model, testloader, device="cuda"))
+
+
+# %%
