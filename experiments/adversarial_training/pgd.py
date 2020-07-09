@@ -4,16 +4,27 @@ import os
 import sys
 
 import torch
-from clustre.adversarial_training import pgd_training
-from clustre.helpers.datasets import (cifar10_testloader, cifar10_trainloader,
-                                      mnist_testloader, mnist_trainloader)
-from clustre.helpers.metrics import (classification_report,
-                                     classification_report_fgsm,
-                                     classification_report_pgd)
-from clustre.models import (cifar10_cnn, cifar10_wide_resnet34_10, mnist_cnn,
-                            mnist_resnet18)
-from clustre.models.state_dicts import mnist_cnn_state, mnist_resnet18_state
 from torch import nn, optim
+
+from clustre.adversarial_training import pgd_training
+from clustre.helpers.datasets import (
+    cifar10_testloader,
+    cifar10_trainloader,
+    mnist_testloader,
+    mnist_trainloader,
+)
+from clustre.helpers.metrics import (
+    classification_report,
+    classification_report_fgsm,
+    classification_report_pgd,
+)
+from clustre.models import (
+    cifar10_cnn,
+    cifar10_wide_resnet34_10,
+    mnist_cnn,
+    mnist_resnet18,
+)
+from clustre.models.state_dicts import mnist_cnn_state, mnist_resnet18_state
 
 # %%
 LOG_FILENAME = os.path.abspath(__file__)[:-3] + "_log.txt"
@@ -27,12 +38,11 @@ mnist_cnn.load_state_dict(mnist_cnn_state)
 mnist_resnet18.load_state_dict(mnist_resnet18_state)
 
 models = {
-    "MNIST CNN": [mnist_cnn, mnist_trainloader, mnist_testloader, True],
     "MNIST ResNet18": [
         mnist_resnet18,
         mnist_trainloader,
         mnist_testloader,
-        False,
+        True,
     ],
 }
 
@@ -41,7 +51,7 @@ for model_name, (model, trainloader, testloader, to_run) in models.items():
     if to_run:
         logging.info(f"Training {model_name}")
         new_model = pgd_training(
-            model, trainloader, n_epoches=10, device="cuda", log=log
+            model, trainloader, n_epoches=40, device="cuda", log=log
         )
         torch.save(
             model.state_dict(),
