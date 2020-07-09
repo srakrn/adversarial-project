@@ -13,7 +13,7 @@ def fgsm_training(
     n_epoches=10,
     epsilon=0.3,
     random=False,
-    alpha=0.1,
+    alpha=0.375,
     criterion=nn.CrossEntropyLoss(),
     optimizer=optim.Adam,
     optimizer_params={},
@@ -65,9 +65,6 @@ def fgsm_training(
         backprop_time = relativedelta()
         # Running loss, for reference
         running_loss = 0
-        # Log epoches
-        if log is not None:
-            log.info(f"\t{get_time()}: Epoch {e+1}")
         # Iterate over minibatches of trainloader
         for i, (images, labels) in enumerate(trainloader):
             # Move tensors to device if desired

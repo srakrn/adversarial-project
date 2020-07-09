@@ -8,7 +8,7 @@ def fgsm(
     label,
     epsilon=0.3,
     random=False,
-    alpha=0.1,
+    alpha=0.375,
     device=None,
 ):
     if device is not None:
@@ -38,7 +38,7 @@ def fgsm_perturbs(
     label,
     epsilon=0.3,
     random=False,
-    alpha=0.1,
+    alpha=0.375,
     device=None,
 ):
     if len(image.shape) == 3:
@@ -65,8 +65,11 @@ def fgsm_perturbs(
     loss.backward()
 
     grad = perturb.grad.detach()
-    perturb.data = torch.clamp(
-        perturb + alpha * torch.sign(grad), -epsilon, epsilon
-    )
+    if random:
+        perturb.data = torch.clamp(
+            perturb + alpha * torch.sign(grad), -epsilon, epsilon
+        )
+    else:
+        perturb.data = torch.clamp(torch.sign(grad), -epsilon, epsilon)
 
     return perturb
