@@ -2,13 +2,13 @@
 import numpy as np
 import numpy.linalg as la
 import seaborn as sns
-
 import torch
+from torch import nn
+
 from clustre.attacking import fgsm_perturbs, maxloss_perturbs, pgd_perturbs
 from clustre.helpers.datasets import mnist_trainloader
 from clustre.models import mnist_cnn, mnist_resnet18
 from clustre.models.state_dicts import mnist_cnn_state, mnist_resnet18_state
-from torch import nn
 
 sns.set()
 
@@ -90,6 +90,34 @@ cnn_pgd = cnn_pgd.cpu().detach().numpy()
 resnet18_fgsm = resnet18_fgsm.cpu().detach().numpy()
 resnet18_maxloss = resnet18_maxloss.cpu().detach().numpy()
 resnet18_pgd = resnet18_pgd.cpu().detach().numpy()
+
+# %%
+cnn_random_fgsms = []
+for i in range(100):
+    print(i)
+    torch.manual_seed(i)
+    ps = []
+    for X, y in iter(mnist_trainloader):
+        X = X.to("cuda")
+        y = y.to("cuda")
+        p = fgsm_perturbs(mnist_cnn, criterion, X, y, random=True)
+        ps.append(p)
+    ps = torch.cat(ps).cpu().detach().numpy()
+    cnn_random_fgsms.append(ps)
+
+# %%
+resnet18_random_fgsms = []
+for i in range(100):
+    print(i)
+    torch.manual_seed(i)
+    ps = []
+    for X, y in iter(mnist_trainloader):
+        X = X.to("cuda")
+        y = y.to("cuda")
+        p = fgsm_perturbs(mnist_resnet18, criterion, X, y, random=True)
+        ps.append(p)
+    ps = torch.cat(ps).cpu().detach().numpy()
+    resnet18_random_fgsms.append(ps)
 
 # %%
 perturbs = [
