@@ -1,4 +1,5 @@
 # %%
+import matplotlib.pyplot as plt
 import numpy as np
 import numpy.linalg as la
 import seaborn as sns
@@ -92,32 +93,36 @@ resnet18_maxloss = resnet18_maxloss.cpu().detach().numpy()
 resnet18_pgd = resnet18_pgd.cpu().detach().numpy()
 
 # %%
-cnn_random_fgsms = []
-for i in range(100):
-    print(i)
-    torch.manual_seed(i)
-    ps = []
-    for X, y in iter(mnist_trainloader):
-        X = X.to("cuda")
-        y = y.to("cuda")
-        p = fgsm_perturbs(mnist_cnn, criterion, X, y, random=True)
-        ps.append(p)
-    ps = torch.cat(ps).cpu().detach().numpy()
-    cnn_random_fgsms.append(ps)
+np.save("playground/perturbs/cnn_fgsm.npy", cnn_fgsm)
+np.save("playground/perturbs/cnn_pgd.npy", cnn_pgd)
+np.save("playground/perturbs/cnn_maxloss.npy", cnn_maxloss)
+np.save("playground/perturbs/resnet18_fgsm.npy", resnet18_fgsm)
+np.save("playground/perturbs/resnet18_pgd.npy", resnet18_pgd)
+np.save("playground/perturbs/resnet18_maxloss.npy", resnet18_maxloss)
 
 # %%
-resnet18_random_fgsms = []
+cnn_fgsm = np.load("playground/perturbs/cnn_fgsm.npy")
+cnn_pgd = np.load("playground/perturbs/cnn_pgd.npy")
+cnn_maxloss = np.load("playground/perturbs/cnn_maxloss.npy")
+resnet18_fgsm = np.load("playground/perturbs/resnet18_fgsm.npy")
+resnet18_pgd = np.load("playground/perturbs/resnet18_pgd.npy")
+resnet18_maxloss = np.load("playground/perturbs/resnet18_maxloss.npy")
+
+# %%
+cnn_random_fgsm = []
 for i in range(100):
-    print(i)
-    torch.manual_seed(i)
-    ps = []
-    for X, y in iter(mnist_trainloader):
-        X = X.to("cuda")
-        y = y.to("cuda")
-        p = fgsm_perturbs(mnist_resnet18, criterion, X, y, random=True)
-        ps.append(p)
-    ps = torch.cat(ps).cpu().detach().numpy()
-    resnet18_random_fgsms.append(ps)
+    p = np.load(
+        f"playground/random_fgsm_perturbs/random_fgsm_mnist_cnn_{i}.npy"
+    )
+    cnn_random_fgsm.append(p)
+
+# %%
+resnet18_random_fgsm = []
+for i in range(100):
+    p = np.load(
+        f"playground/random_fgsm_perturbs/random_fgsm_mnist_resnet18_{i}.npy"
+    )
+    resnet18_random_fgsm.append(p)
 
 # %%
 perturbs = [
@@ -127,7 +132,7 @@ perturbs = [
     resnet18_fgsm,
     resnet18_pgd,
     resnet18_maxloss,
-]
+] + cnn_random_fgsm
 
 label = [
     "cnn_fgsm",
@@ -136,7 +141,7 @@ label = [
     "resnet18_fgsm",
     "resnet18_pgd",
     "resnet18_maxloss",
-]
+] + [f"cnn_random_fgsm_{i}" for i in range(100)]
 
 # %%
 dists = []
@@ -153,6 +158,8 @@ for i in perturbs:
 dists = np.array(dists)
 
 # %%
-sns.heatmap(dists, annot=True, xticklabels=label, yticklabels=label)
+fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+ax = sns.heatmap(dists[:-50, :-50])
+plt.show()
 
 # %%
