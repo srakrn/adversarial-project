@@ -125,3 +125,4 @@ tmp
 *.model
 bfg-1.13.0.jar
 *_log.txt
+*.npy
