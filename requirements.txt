@@ -12,7 +12,7 @@ cloudpickle==1.4.1
 -e git+git@github.com:srakrnxKU/adversarial-project.git@4542d1fae71804be74e742bf1acb81d90498a06c#egg=clustre
 contextvars==2.4
 cycler==0.10.0
-dask==2.16.0
+dask==2021.10.0
 dask-cuda==0.13.0
 decorator==4.4.2
 defusedxml==0.6.0
