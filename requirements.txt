@@ -16,7 +16,7 @@ dask==2021.10.0
 dask-cuda==0.13.0
 decorator==4.4.2
 defusedxml==0.6.0
-distributed==2.16.0
+distributed==2021.10.0
 entrypoints==0.3
 flake8==3.7.9
 fsspec==0.7.4
